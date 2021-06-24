@@ -13,7 +13,8 @@ namespace MagicSquares
 		{
 
 			byte size = 4;
-			var square = new Square(size);
+			var combinations = new Combinations();
+			var square = new Square(size, combinations);
 			var sums = new SumCombinations();
 			var len = square.Length;
 
@@ -31,7 +32,7 @@ namespace MagicSquares
 					if (AreEntriesUnique(rows))
 					{
 						var p = new HashSet<Square.Combination>();
-						var c = rows.Select(r => r.GetMemoizedCombinations()).Memoize();
+						var c = rows.Select(r => combinations.GetMemoizedCombinations(r)).Memoize();
 						foreach (var combo in Arrangments(c).Skip(1).Where(a => IsMagicColumns(a, n)))
 						{
 							var ms = square.GetCombination(combo.SelectMany(e => e).ToImmutableArray());

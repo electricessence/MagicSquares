@@ -10,14 +10,15 @@ namespace MagicSquares
 {
 	public class Square
 	{
-		public Square(byte size)
+		public Square(byte size, Combinations combinationSource)
 		{
+			;
 			Size = size;
-			var sizeInt = (int)size;
+            var sizeInt = (int)size;
 			Length = (ushort)(sizeInt * sizeInt);
 
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
-			Combinations = values.GetCombinations().Select(GetCombination).Memoize();
+			Combinations = (combinationSource ?? throw new ArgumentNullException(nameof(combinationSource))).GetCombinations(values).Select(GetCombination).Memoize();
 			UniqueCombinations = Combinations.Where(c => c.IsPrimary).Memoize();
 		}
 
@@ -118,7 +119,7 @@ namespace MagicSquares
 
 		readonly ConcurrentDictionary<string, Lazy<Combination>> Registry = new();
 
-		public Combination GetCombination(IReadOnlyList<uint> values)
+        public Combination GetCombination(IReadOnlyList<uint> values)
 			=> Registry.GetOrAdd(Combination.GetHash(values), key => new Lazy<Combination>(() => new Combination(this, values))).Value;
 		public Combination GetCombination(IEnumerable<int> values)
 			=> Registry.GetOrAdd(Combination.GetHash(values), key => new Lazy<Combination>(() => new Combination(this, values.Select(Convert.ToUInt32).ToImmutableArray()))).Value;

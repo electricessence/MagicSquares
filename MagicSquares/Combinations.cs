@@ -6,74 +6,34 @@ using System.Linq;
 namespace MagicSquares
 {
 
-	public static class Combinations
+	public class Combinations
 	{
-		//static IEnumerable<T> Combine<T>(T value, IEnumerable<T> rest)
-		//{
-		//	yield return value;
-		//	foreach (var v in rest)
-		//		yield return v;
-		//}
+		public Combinations()
+		{
+			Indexes = GetIndexes().AsParallel().Memoize();
+		}
 
-		static IEnumerable<T> Arrange<T>(IReadOnlyList<T> source, IEnumerable<int> order)
+		public static IEnumerable<T> Arrange<T>(IReadOnlyList<T> source, IEnumerable<int> order)
 		{
 			foreach (var i in order)
 				yield return source[i];
 		}
 
-		public static IEnumerable<IEnumerable<T>> GetCombinations<T>(this IEnumerable<T> values)
+		public IEnumerable<IEnumerable<T>> GetCombinations<T>(IEnumerable<T> values)
 		{
 			var source = values is IReadOnlyList<T> v ? v : values.ToImmutableArray();
 			return Indexes[source.Count].Select(c => Arrange(source, c));
 		}
 
-		public static IReadOnlyList<IReadOnlyList<T>> GetMemoizedCombinations<T>(this IEnumerable<T> values)
+		public IReadOnlyList<IReadOnlyList<T>> GetMemoizedCombinations<T>(IEnumerable<T> values)
 		{
 			var source = values is IReadOnlyList<T> v ? v : values.ToImmutableArray();
 			return Indexes[source.Count].Select(c => Arrange(source, c).Memoize()).Memoize();
 		}
 
-		public static IEnumerable<T[]> GetSubsets<T>(this IReadOnlyList<T> source, int count)
-		{
-			if (count < 1)
-				throw new System.ArgumentOutOfRangeException(nameof(count), count, "Must greater than zero.");
-			if (count > source.Count)
-				throw new System.ArgumentOutOfRangeException(nameof(count), count, "Must be less than or equal to the length of the source set.");
-			var result = new T[count];
-			if (count == 1)
-			{
-				foreach (var e in source)
-				{
-					result[0] = e;
-					yield return result;
-				}
-				yield break;
-			}
-			var indices = new int[count];
-			for (int pos = 0, index = 0; ;)
-			{
-				for (; pos < count; pos++, index++)
-				{
-					indices[pos] = index;
-					result[pos] = source[index];
-				}
-				yield return result;
-				do
-				{
-					if (pos == 0) yield break;
-					index = indices[--pos] + 1;
-				}
-				while (index > source.Count - count + pos);
-			}
-		}
 
-		public static IEnumerable<ImmutableArray<T>> GetSubsetsImmutable<T>(this IReadOnlyList<T> source, int count)
-		{
-			foreach (var s in GetSubsets(source, count))
-				yield return s.ToImmutableArray();
-		}
 
-		static IEnumerable<IReadOnlyList<ImmutableArray<int>>> GetIndexes()
+		IEnumerable<IReadOnlyList<ImmutableArray<int>>> GetIndexes()
 		{
 			yield return ImmutableArray<ImmutableArray<int>>.Empty;
 			yield return ImmutableArray.Create(ImmutableArray.Create(0));
@@ -85,12 +45,12 @@ namespace MagicSquares
 		loop:
 			indexes.Add(i);
 			++i;
-			yield return GetIndexesCore(indexes.ToImmutableArray()).Memoize();
+			yield return GetIndexesCore(indexes.ToImmutableArray()).AsParallel().Memoize();
 			goto loop;
 
 		}
 
-		static IEnumerable<ImmutableArray<int>> GetIndexesCore(ImmutableArray<int> first)
+		IEnumerable<ImmutableArray<int>> GetIndexesCore(ImmutableArray<int> first)
 		{
 			var len = first.Length;
 			var combinations = Indexes[len - 1];
@@ -111,8 +71,8 @@ namespace MagicSquares
 			}
 		}
 
-		static readonly LazyList<IReadOnlyList<ImmutableArray<int>>> Indexes = GetIndexes().Memoize();
+		readonly LazyList<IReadOnlyList<ImmutableArray<int>>> Indexes;
 
-		public static IReadOnlyList<ImmutableArray<int>> GetIndexes(int length) => Indexes[length];
+        public IReadOnlyList<ImmutableArray<int>> GetIndexes(int length) => Indexes[length];
 	}
 }
