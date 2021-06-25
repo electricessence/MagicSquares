@@ -12,7 +12,7 @@ namespace MagicSquares
 		static void Main()
 		{
 
-			byte size = 4;
+			byte size = 3;
 			var combinations = new Combinations();
 			var square = new Square(size, combinations);
 			var sums = new PossibleAddens();
