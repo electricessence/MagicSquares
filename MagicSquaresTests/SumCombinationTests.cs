@@ -7,7 +7,7 @@ namespace MagicSquaresTests
 	[TestClass]
 	public class SumCombinationTests
 	{
-		readonly SumCombinations SC = new();
+		readonly PossibleAddens SC = new();
 
 		[TestMethod]
 		public void NoAddendsLessThan2()

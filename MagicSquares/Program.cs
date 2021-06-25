@@ -15,7 +15,7 @@ namespace MagicSquares
 			byte size = 4;
 			var combinations = new Combinations();
 			var square = new Square(size, combinations);
-			var sums = new SumCombinations();
+			var sums = new PossibleAddens();
 			var len = square.Length;
 
 

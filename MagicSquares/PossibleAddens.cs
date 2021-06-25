@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 
 namespace MagicSquares
 {
-	public class SumCombinations
+	public class PossibleAddens
 	{
-		public SumCombinations()
+		public PossibleAddens()
 		{
 		}
 
