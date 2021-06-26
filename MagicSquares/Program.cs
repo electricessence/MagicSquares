@@ -14,7 +14,7 @@ namespace MagicSquares
         static void Main()
         {
 
-            const byte size = 5;
+            const byte size = 6;
             const int first = 34;
             const int last = 500;
             var combinations = new Combinations();
@@ -24,7 +24,10 @@ namespace MagicSquares
             Console.WriteLine("Searching for {0} x {0} ({1} unique) Magic Square...", size, len);
 
 
-            Parallel.For(first, last + 1, n =>
+            Parallel.For(first, last + 1, new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 3 // Don't bloat memory unneccesarily...
+            }, n =>
             //for (var n = first; n < last + 1; ++n)
             {
                 lock (square) Console.WriteLine("Testing possible sum {0}...", n);
