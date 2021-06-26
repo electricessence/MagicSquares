@@ -10,7 +10,7 @@ namespace MagicSquares
 	{
 		public Combinations()
 		{
-			Indexes = GetIndexes().AsParallel().Memoize();
+			Indexes = GetIndexes().Memoize();
 		}
 
 		public static IEnumerable<T> Arrange<T>(IReadOnlyList<T> source, IEnumerable<int> order)
@@ -47,21 +47,21 @@ namespace MagicSquares
 		loop:
 			indexes.Add(i);
 			++i;
-			yield return GetIndexesCore(indexes.ToImmutableArray()).AsParallel().Memoize();
+			yield return GetIndexesCore(indexes).Memoize();
 			goto loop;
 
 		}
 
-		IEnumerable<ImmutableArray<int>> GetIndexesCore(ImmutableArray<int> first)
+		IEnumerable<ImmutableArray<int>> GetIndexesCore(IReadOnlyList<int> first)
 		{
-			var len = first.Length;
+			var len = first.Count;
 			var combinations = Indexes[len - 1];
 			for (var i = 0; i < len; i++)
 			{
-				var builder = ImmutableArray.CreateBuilder<int>(first.Length);
+				var builder = ImmutableArray.CreateBuilder<int>(len);
 				foreach (var comb in combinations)
 				{
-					builder.Capacity = first.Length;
+					builder.Capacity = len;
 					builder.Add(i);
 					foreach (var c in comb)
 					{
