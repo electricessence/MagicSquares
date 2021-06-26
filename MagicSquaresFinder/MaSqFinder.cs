@@ -3,19 +3,13 @@ using Open.Threading;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MagicSquaresFinder
 {
-	public partial class MaSqFinder : Form
+    public partial class MaSqFinder : Form
 	{
 		public MaSqFinder()
 		{
@@ -29,14 +23,14 @@ namespace MagicSquaresFinder
 
 		public int PossibleAddensCount => (int)PossibleAddensCountField.Value;
 
-		public uint PossibleAddensSum => (uint)PossibleAddensSumField.Value;
+		public int PossibleAddensSum => (int)PossibleAddensSumField.Value;
 
 
 		public IReadOnlyList<ImmutableArray<int>> CombinationValues
 			=> Combinations.GetIndexes(CombinationLength);
 
-		public IReadOnlyList<IReadOnlyList<uint>> PossibleAddenValues
-			=> PossibleAddens.UniqueAddensFor(PossibleAddensSum, (uint)PossibleAddensCount);
+		public IReadOnlyList<IReadOnlyList<int>> PossibleAddenValues
+			=> PossibleAddens.UniqueAddensFor(PossibleAddensSum, (int)PossibleAddensCount);
 
 		readonly DataTable CombinationSource = new();
 		readonly DataTable PossibleAddensSource = new();

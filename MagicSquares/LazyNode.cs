@@ -5,23 +5,23 @@ using System.Linq;
 
 namespace MagicSquares
 {
-	public class LazyNode<T> : IParent<LazyNode<T>>
-		where T :struct
-	{
-		public LazyNode(T value, IEnumerable<T> values)
-		{
-			Value = value;
-			var filtered = values
-				.Where(v => !v.Equals(value)).Memoize();
+    public class LazyNode<T> : IParent<LazyNode<T>>
+        where T : struct
+    {
+        public LazyNode(T value, IEnumerable<T> values)
+        {
+            Value = value;
+            var filtered = values
+                .Where(v => !v.Equals(value)).Memoize();
 
-			Children = filtered
-				.Select(v=>new LazyNode<T>(v, filtered)).Memoize();
-		}
+            Children = filtered
+                .Select(v => new LazyNode<T>(v, filtered)).Memoize();
+        }
 
-		public T Value { get; }
+        public T Value { get; }
 
-		public IReadOnlyList<LazyNode<T>> Children { get; }
+        public IReadOnlyList<LazyNode<T>> Children { get; }
 
-		IReadOnlyList<object> IParent.Children => Children;
-	}
+        IReadOnlyList<object> IParent.Children => Children;
+    }
 }

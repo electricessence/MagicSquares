@@ -12,14 +12,14 @@ namespace MagicSquares
 		{
 		}
 
-		readonly ConcurrentDictionary<uint, ConcurrentDictionary<uint, IReadOnlyList<IReadOnlyList<uint>>>> Cache = new();
+		readonly ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>> Cache = new();
 
-		public IReadOnlyList<IReadOnlyList<uint>> UniqueAddensFor(uint sum, uint count)
+		public IReadOnlyList<IReadOnlyList<int>> UniqueAddensFor(int sum, int count)
 			=> Cache
-				.GetOrAdd(count, key => new ConcurrentDictionary<uint, IReadOnlyList<IReadOnlyList<uint>>>())
+				.GetOrAdd(count, key => new ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>())
 				.GetOrAdd(sum, key => GetUniqueAddens(sum, count).Memoize());
 
-		public IEnumerable<IReadOnlyList<uint>> GetUniqueAddens(uint sum, uint count)
+		public IEnumerable<IReadOnlyList<int>> GetUniqueAddens(int sum, int count)
 		{
 			if (count > int.MaxValue)
 				throw new ArgumentOutOfRangeException(nameof(count), count, "Cannot be greater than signed 32 bit integer maximum.");
@@ -31,7 +31,7 @@ namespace MagicSquares
 
 			if (count==2)
 			{
-				uint i = 0;
+				int i = 0;
 			loop2:
 				i++;
 				if (i * 2 >= sum) yield break;
@@ -41,8 +41,8 @@ namespace MagicSquares
 			}
 
 			{
-				uint i = 2;
-				var builder = ImmutableArray.CreateBuilder<uint>();
+				int i = 2;
+				var builder = ImmutableArray.CreateBuilder<int>();
 
 				while (++i < sum)
 				{

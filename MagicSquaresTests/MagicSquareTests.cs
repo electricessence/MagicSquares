@@ -1,10 +1,5 @@
 ﻿using MagicSquares;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MagicSquaresTests
 {
@@ -33,6 +28,30 @@ namespace MagicSquaresTests
                 };
 
                 Assert.IsTrue(square.IsMagicSquare());
+            }
+
+            {
+                int[][] square = new int[][] {
+                    new int[] { 4, 14, 15, 1 },
+                    new int[] { 9, 7, 6, 12 },
+                    new int[] { 5, 11, 10, 8, 1 },
+                    new int[] { 16, 2, 3, 13 }
+                };
+
+                Assert.IsTrue(square.IsMagicSquare(true));
+            }
+
+            {
+                int[][] square = new int[][] {
+                    new int[] { 4, 14, 15, 1 },
+                    new int[] { 9, 7, 6, 12 },
+                    new int[] { 5, 11, 10, 8, 1 },
+                    new int[] { 16, 2, 3, 13 },
+                    null,
+                    null
+                };
+
+                Assert.IsTrue(square.IsMagicSquare(4, 34, true));
             }
         }
 
