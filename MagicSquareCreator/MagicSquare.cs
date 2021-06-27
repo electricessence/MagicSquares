@@ -1,18 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MagicSquareCreator
 {
 	public class MagicSquare
 	{
-
-		static readonly int[,] PX = new int[,] { { 0, 2 }, { 3, 1 } };
-		static readonly int[,] PY = new int[,] { { 3, 2 }, { 0, 1 } };
-		static readonly int[,] PZ = new int[,] { { 0, 1 }, { 2, 3 } };
-
 		public static int[,] CreateFromFirst(int size, in int first)
 		{
 			if (size < 3) throw new ArgumentOutOfRangeException(nameof(size), size, "Must be at least 3.");
@@ -83,7 +74,8 @@ namespace MagicSquareCreator
 			else
 			{
 				var half = size / 2;
-				var fourth = size / 2;
+				var fourth1 = size / 4;
+				var fourth4 = size - fourth1 + 1;
 
 				// Setup.
 				for (var q = 0; q < 4; ++q)
@@ -115,15 +107,24 @@ namespace MagicSquareCreator
 					}
 				}
 
-				// Swap diagnals...
-				for (var c = 0; c < half - 1; ++c)
+				// Shift all extra columns.
+				int c;
+				for (var r = 0; r < half; r++)
 				{
-					var y2 = half - c - 1;
-					var y3 = size - y2 - 1;
-					var y4 = size - c - 1;
+					for (c = 0; c < fourth1 - 1; ++c)
+					{
+						SwapY(c, r, r + half);
+					}
+					for (c = fourth4; c < size; ++c)
+					{
+						SwapY(c, r, r + half);
+					}
+				}
 
-					SwapY(c, c, y3);
-					if (c != y2) SwapY(c, y2, y4);
+				// Shift special.
+				for (var r = 0; r < half; r++)
+				{
+					SwapY(r == fourth1 ? fourth1 : (fourth1 - 1), r, r + half);
 				}
 
 				void SwapY(in int x, in int y1, in int y2)
