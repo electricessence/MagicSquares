@@ -1,4 +1,5 @@
 ﻿using Open.Disposable;
+using Open.Numeric;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace MagicSquares
     public static class Extensions
     {
         public static bool AllDistinct<T>(this IEnumerable<T> rows)
-        => HashSetPool<T>.Instance.Rent(d =>
+        => HashSetPool<T>.Shared.Rent(d =>
         {
             foreach (var e in rows)
             {

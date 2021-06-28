@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace MagicSquares
+namespace Open.Numeric
 {
-
 	public class Combinations
 	{
 		public Combinations()
@@ -31,8 +30,6 @@ namespace MagicSquares
 			return Indexes[source.Count].Select(c => Arrange(source, c).Memoize()).Memoize();
 		}
 
-
-
 		IEnumerable<IReadOnlyList<ImmutableArray<int>>> GetIndexes()
 		{
 			yield return ImmutableArray<ImmutableArray<int>>.Empty;
@@ -40,16 +37,13 @@ namespace MagicSquares
 			yield return ImmutableArray.Create(ImmutableArray.Create(0, 1), ImmutableArray.Create(1, 0));
 
 			var i = 2;
-			var indexes = ListPool<int>.Instance.Take(); // And never give back. (not tracked)
-			indexes.Add(0);
-			indexes.Add(1);
+			var indexes = new List<int> { 0, 1 };
 
 		loop:
 			indexes.Add(i);
 			++i;
 			yield return GetIndexesCore(indexes).Memoize();
 			goto loop;
-
 		}
 
 		IEnumerable<ImmutableArray<int>> GetIndexesCore(IReadOnlyList<int> first)

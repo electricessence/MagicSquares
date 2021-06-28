@@ -1,4 +1,5 @@
 ﻿using MagicSquares;
+using Open.Numeric;
 using Open.Threading;
 using System;
 using System.Collections.Generic;

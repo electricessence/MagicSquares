@@ -1,5 +1,5 @@
-using MagicSquares;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Open.Numeric;
 using System.Linq;
 
 namespace MagicSquaresTests

@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace MagicSquares
+namespace Open.Numeric
 {
 	public class PossibleAddens
 	{
@@ -12,7 +12,8 @@ namespace MagicSquares
 		{
 		}
 
-		readonly ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>> Cache = new();
+		readonly ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>> Cache
+			= new ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>>();
 
 		public IReadOnlyList<IReadOnlyList<int>> UniqueAddensFor(int sum, int count)
 			=> Cache

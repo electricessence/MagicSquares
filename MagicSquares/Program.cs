@@ -1,5 +1,6 @@
 ﻿using Open.Collections;
 using Open.Disposable;
+using Open.Numeric;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -36,10 +37,10 @@ namespace MagicSquares
 
                 var count = 0;
                 // Get N rows and test them.
-                Parallel.ForEach(s.GetSubsetsImmutable(size), (rows, loopState) =>
+                Parallel.ForEach(s.Subsets(size), (rows, loopState) =>
                 {
                     if (!rows.SelectMany(e => e).AllDistinct()) return;
-                    HashSetPool<Square.Combination>.Instance.Rent(p =>
+                    HashSetPool<Square.Combination>.Shared.Rent(p =>
                     {
                         var c = rows.Select(r => combinations.GetMemoizedCombinations(r)).Memoize();
                         foreach (var combo in Arrangments(c).Skip(1).Where(a => a.IsMagicSquare(size, n, true)))
@@ -87,7 +88,7 @@ namespace MagicSquares
 
         static IEnumerable<T[]> Arrangments<T>(IReadOnlyList<IEnumerable<T>> source)
         {
-            var listPool = ListPool<IEnumerator<T>>.Instance;
+            var listPool = ListPool<IEnumerator<T>>.Shared;
             List<IEnumerator<T>> enumerators = listPool.Take();
             try
             {
@@ -102,7 +103,7 @@ namespace MagicSquares
 
                 var count = enumerators.Count;
 
-                bool GetNext() => ListPool<int>.Instance.Rent(reset =>
+                bool GetNext() => ListPool<int>.Shared.Rent(reset =>
                 {
                     for (var i = 0; i < count; i++)
                     {

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Open.Collections;
 using Open.Memory;
+using Open.Numeric;
 
 namespace MagicSquares
 {
