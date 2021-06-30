@@ -92,8 +92,24 @@ namespace MagicSquares
 			var sizeX = square.GetLength(0);
 			var sizeY = square.GetLength(1);
 			return IsMagicSquare(
-				Enumerable.Range(0, sizeY).Select(y => Enumerable.Range(0, sizeX).Select(x => square[x, y]).ToArray()),
+				square.Rows().Select(c=>c.ToArray()).ToArray(),
 				sizeX, 0, false);
+		}
+
+		public static IEnumerable<IEnumerable<T>> Columns<T>(this T[,] source)
+		{
+			var sizeX = source.GetLength(0);
+			var sizeY = source.GetLength(1);
+			return Enumerable.Range(0, sizeY)
+				.Select(y => Enumerable.Range(0, sizeX).Select(x => source[x, y]));
+		}
+
+		public static IEnumerable<IEnumerable<T>> Rows<T>(this T[,] source)
+		{
+			var sizeX = source.GetLength(0);
+			var sizeY = source.GetLength(1);
+			return Enumerable.Range(0, sizeY)
+				.Select(y => Enumerable.Range(0, sizeX).Select(x => source[y, x]));
 		}
 
 		public static IEnumerable<T> Row<T>(this T[,] source, int index)
