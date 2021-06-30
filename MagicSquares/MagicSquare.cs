@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 
-namespace MagicSquareGenerator
+namespace MagicSquares
 {
-	public class MagicSquare
+	public static class MagicSquare
 	{
 		public static int[,] CreateFromFirst(int size, in int first)
 		{
@@ -136,6 +137,7 @@ namespace MagicSquareGenerator
 				}
 			}
 
+			Debug.Assert(grid.IsMagicSquare());
 			return grid;
 		}
 	}

@@ -14,12 +14,10 @@ namespace MagicSquares
     {
         static void Main()
         {
-
-            const byte size = 6;
-            const int first = 34;
+            const byte size = 4;
+            var first = MagicSquare.CreateFromFirst(size, 1).Row(0).Sum();
             const int last = 500;
-            var combinations = new Combinations();
-            var square = new Square(size, combinations);
+            var square = new Square(size);
             var sums = new PossibleAddens();
             var len = square.Length;
             Console.WriteLine("Searching for {0} x {0} ({1} unique) Magic Square...", size, len);
@@ -42,7 +40,7 @@ namespace MagicSquares
                     if (!rows.SelectMany(e => e).AllDistinct()) return;
                     HashSetPool<Square.Combination>.Shared.Rent(p =>
                     {
-                        var c = rows.Select(r => combinations.GetMemoizedCombinations(r)).Memoize();
+                        var c = rows.Select(r => r.Permutations()).Memoize();
                         foreach (var combo in Arrangments(c).Skip(1).Where(a => a.IsMagicSquare(size, n, true)))
                         {
                             var ms = square.GetCombination(combo.Take(size).SelectMany(e => e).ToImmutableArray());

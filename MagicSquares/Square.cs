@@ -11,7 +11,7 @@ namespace MagicSquares
 {
 	public class Square
 	{
-		public Square(byte size, Combinations combinationSource)
+		public Square(byte size)
 		{
 			;
 			Size = size;
@@ -19,7 +19,7 @@ namespace MagicSquares
 			Length = (ushort)(sizeInt * sizeInt);
 
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
-			Combinations = (combinationSource ?? throw new ArgumentNullException(nameof(combinationSource))).GetCombinations(values).Select(GetCombination).Memoize();
+			Combinations = values.Permutations().Select(GetCombination).Memoize();
 			UniqueCombinations = Combinations.Where(c => c.IsPrimary).Memoize();
 		}
 

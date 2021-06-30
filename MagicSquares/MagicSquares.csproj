@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Remove="IndexesX.cs" />
+    <Compile Remove="LazyNode.cs" />
   </ItemGroup>
 
   <ItemGroup>
