@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MagicSquareCreator
+namespace MagicSquareGenerator
+
 {
 	class Program
 	{

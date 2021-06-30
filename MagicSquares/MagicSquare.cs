@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MagicSquareCreator
+namespace MagicSquareGenerator
 {
 	public class MagicSquare
 	{

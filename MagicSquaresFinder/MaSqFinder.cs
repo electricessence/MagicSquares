@@ -1,4 +1,5 @@
 ﻿using MagicSquares;
+using Open.Collections;
 using Open.Numeric;
 using Open.Threading;
 using System;
@@ -17,7 +18,6 @@ namespace MagicSquaresFinder
 			InitializeComponent();
 		}
 
-		readonly Combinations Combinations = new();
 		readonly PossibleAddens PossibleAddens = new();
 
 		public int CombinationLength => (int)CombinationLengthField.Value;
@@ -27,8 +27,8 @@ namespace MagicSquaresFinder
 		public int PossibleAddensSum => (int)PossibleAddensSumField.Value;
 
 
-		public IReadOnlyList<ImmutableArray<int>> CombinationValues
-			=> Combinations.GetIndexes(CombinationLength);
+		public IEnumerable<int[]> CombinationValues
+			=> Enumerable.Range(0, CombinationLength).Permutations();
 
 		public IReadOnlyList<IReadOnlyList<int>> PossibleAddenValues
 			=> PossibleAddens.UniqueAddensFor(PossibleAddensSum, (int)PossibleAddensCount);
