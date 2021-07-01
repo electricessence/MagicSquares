@@ -45,9 +45,8 @@ namespace MagicSquares
 
 			var count = 0;
 			var sw = Stopwatch.StartNew();
-#if DEBUG
 			var verification = new HashSet<string>();
-#endif
+
 			// Then get all row permutations.
 			Parallel.ForEach(s.Subsets(size), rows =>
 			{
@@ -55,33 +54,25 @@ namespace MagicSquares
 
 				// Discovered a valid set!  We know the rows already add up.
 				// Rearange each row (set) to see if we can get a Magic Square.
-				HashSetPool<Square.Permutation>.Shared.Rent(p =>
+
+				// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
+				using var c = rows.Select(r => r.Permutations()).Memoize();
+
+				// Next, group each possible configuration of these rows and look for a winner.
+				foreach (var config in c.RowConfigurations().Skip(1).Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
-					// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
-					using var c = rows.Select(r => r.Permutations()).Memoize();
-					// Next, group each possible configuration of these rows and look for a winner.
-					foreach (var config in c.RowConfigurations().Skip(1).Where(a => a.IsMagicSquare(size, firstSum, true)))
+					// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
+					var ms = square.GetPermutation(config.Take(size).SelectMany(e => e).ToImmutableArray());
+					var pCombo = ms.Group.Value[0].Value; // Get the normalized version of the matrix.
+
+					lock (square)
 					{
-						// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
-						var ms = square.GetPermutation(config.Take(size).SelectMany(e => e).ToImmutableArray());
-						var pCombo = ms.Group.Value[0].Value; // Get the normalized version of the matrix.
-						if (!p.Add(pCombo)) continue; // Already reported the normalized version?
-
-#if DEBUG
-						bool isNew;
-						lock (verification) isNew = verification.Add(pCombo.Hash);
-						Debug.Assert(isNew);
-						if (!isNew) return;
-#endif
-
-						lock (square)
-						{
-							Console.WriteLine();
-							Console.WriteLine("{0}:", ++count);
-							pCombo.ToXYGrid().OutputToConsole(size);
-						}
+						if (!verification.Add(pCombo.Hash)) return;
+						Console.WriteLine();
+						Console.WriteLine("{0}:", ++count);
+						pCombo.ToXYGrid().OutputToConsole(size);
 					}
-				});
+				}
 			});
 
 			Console.WriteLine();
