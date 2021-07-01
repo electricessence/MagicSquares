@@ -3,6 +3,7 @@ using Open.Disposable;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MagicSquares
@@ -125,6 +126,9 @@ namespace MagicSquares
 				.Select(y => Enumerable.Range(0, sizeX).Select(x => source[y, x]));
 		}
 
+		public static IEnumerable<T> Flat<T>(this T[,] source)
+			=> source.Rows().SelectMany(e => e);
+
 		public static IEnumerable<T[]> RowsBuffered<T>(this IEnumerable<T> source, int width)
 		{
 			var pool = ArrayPool<T>.Shared;
@@ -231,6 +235,7 @@ namespace MagicSquares
 				}
 
 				var count = enumerators.Count;
+				Debug.Assert(source.Count == count);
 
 				bool GetNext() => ListPool<int>.Shared.Rent(reset =>
 				{

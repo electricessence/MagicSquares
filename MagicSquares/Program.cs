@@ -1,8 +1,6 @@
 ﻿using Open.Collections;
 using Open.Collections.Numeric;
-using Open.Disposable;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -23,8 +21,9 @@ namespace MagicSquares
 
 			Console.WriteLine();
 			Console.WriteLine("First possible square (starting with 1):");
+			var square = new Square(size);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
-			defaultSquare.OutputToConsole(size);
+			square.GetPermutation(defaultSquare.Flat().ToImmutableArray()).Primary.ToXYGrid().OutputToConsole(size);
 			Console.WriteLine();
 
 			// REDUCING THE SEARCH SPACE IS THE KEY.
@@ -32,26 +31,37 @@ namespace MagicSquares
 			// Once a known minimum is established, we know there are more above that sum.
 			// For example 4x4 will be rows that add up to 34.
 			var firstSum = defaultSquare.Row(0).Sum();
-			var square = new Square(size);
 			var sums = new PossibleAddends();
 			var len = square.Length;
 
 			// Get all possible value combinations.
 			var s = sums.UniqueAddendsFor(firstSum, size);
 			Console.WriteLine("Possible {0} unique addends combinations for a sum of {1}:", s.Count, firstSum);
+			foreach (var pa in s)
+				Console.WriteLine(string.Join(' ', pa));
+
+			if(size==3)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Possible subsets:");
+				var possibleSubsets = s.Subsets(size).Where(e => e.SelectMany(e => e).AllDistinct());
+				foreach (var subset in possibleSubsets)
+					Console.WriteLine(string.Join(' ', subset.Select(u => $"[{string.Join(' ', u)}]")));
+			}
 
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares with a sum of {2}...", size, len, firstSum);
 
 			var count = 0;
 			var sw = Stopwatch.StartNew();
-			var verification = new HashSet<string>();
+			var verification = new ConcurrentHashSet<string>();
 
-			// Then get all row permutations.
+			// As long as diagnal values are not important, once a magic square is found, its rows or columns can be shuffled and all numbers will still add up.
+			// Then get all row (set) permutations.
+			// The order of the rows doesn't matter as long as they add up.
 			Parallel.ForEach(s.Subsets(size), rows =>
 			{
 				if (!rows.SelectMany(e => e).AllDistinct()) return;
-
 				// Discovered a valid set!  We know the rows already add up.
 				// Rearange each row (set) to see if we can get a Magic Square.
 
@@ -62,22 +72,39 @@ namespace MagicSquares
 				foreach (var config in c.RowConfigurations().Skip(1).Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
 					// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
-					var ms = square.GetPermutation(config.Take(size).SelectMany(e => e).ToImmutableArray());
-					var pCombo = ms.Group.Value[0].Value; // Get the normalized version of the matrix.
-
+					var p = square.GetPermutation(config, size).Primary; // Get the normalized version of the matrix.
+					if (!verification.Add(p.Hash)) return;
 					lock (square)
 					{
-						if (!verification.Add(pCombo.Hash)) return;
 						Console.WriteLine();
 						Console.WriteLine("{0}:", ++count);
-						pCombo.ToXYGrid().OutputToConsole(size);
+						p.ToXYGrid().OutputToConsole(size);
 					}
 				}
 			});
 
 			Console.WriteLine();
-			Console.WriteLine("Total found: {0}", count);
+			Console.WriteLine("Total groupings found: {0}", count);
 			Console.Write(sw.Elapsed);
+			Console.WriteLine();
+
+			//sw.Reset();
+			//verification.Clear();
+			//var values = Enumerable.Range(1, len).ToArray();
+			//sw.Start();
+			//foreach (var e in values.Permutations().MagicSquares(size))
+			//{
+			//	var p = square.GetPermutation(e).Primary;
+			//	if (!verification.Add(p.Hash)) continue;
+			//	Console.WriteLine();
+			//	Console.WriteLine("{0}:", verification.Count);
+			//	p.ToXYGrid().OutputToConsole(size);
+			//}
+
+			//Console.WriteLine();
+			//Console.WriteLine("Total found: {0}", verification.Count);
+			//Console.Write(sw.Elapsed);
+			//Console.WriteLine();
 		}
 
 	}

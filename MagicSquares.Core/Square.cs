@@ -12,7 +12,6 @@ namespace MagicSquares
 	{
 		public Square(byte size)
 		{
-			;
 			Size = size;
             var sizeInt = (int)size;
 			Length = (ushort)(sizeInt * sizeInt);
@@ -41,7 +40,7 @@ namespace MagicSquares
 				if (values is null) throw new ArgumentNullException(nameof(values));
 				if (values.Count != Square.Length) throw new ArgumentException($"Length of values ({values.Count}) does not match expected ({Square.Length}).", nameof(values));
 
-				Values = values;
+				Values = values is ImmutableArray<int> v ? v : values.ToImmutableArray();
 				Hash = GetHash(values);
 				var variations = new Lazy<IReadOnlyList<int>[]>(() =>
 				{
@@ -50,7 +49,7 @@ namespace MagicSquares
 					return variations;
 				});
 
-				_isPrimary = new Lazy<bool>(() => variations.Value.First().Equals(values));
+				_isPrimary = new Lazy<bool>(() => variations.Value[0].Equals(Values));
 
 				Group = new Lazy<IReadOnlyList<Lazy<Permutation>>>(() =>
 				{
@@ -60,7 +59,7 @@ namespace MagicSquares
 					}
 					else
 					{
-						return Square.GetPermutation(variations.Value.First()).Group.Value;
+						return Square.GetPermutation(variations.Value[0]).Group.Value;
 					}
 				});
 			}
@@ -70,6 +69,8 @@ namespace MagicSquares
 			public IReadOnlyList<int> Values { get; }
 
 			public Lazy<IReadOnlyList<Lazy<Permutation>>> Group { get; }
+
+			public Permutation Primary => Group.Value[0].Value;
 
 			public string Hash { get; }
 
@@ -103,7 +104,7 @@ namespace MagicSquares
 					values = Square.GetRotated(values).ToImmutableArray();
 					yield return values;
 					mirror = Square.GetRotated(mirror).ToImmutableArray();
-					yield return values;
+					yield return mirror;
 				}
 			}
 		}
@@ -134,5 +135,8 @@ namespace MagicSquares
 
         public Permutation GetPermutation(IReadOnlyList<int> values)
 			=> Registry.GetOrAdd(Permutation.GetHash(values), key => new Lazy<Permutation>(() => new Permutation(this, values))).Value;
+
+		public Permutation GetPermutation(int[][] values, int size)
+			=> GetPermutation(values.Take(size).SelectMany(e => e).ToImmutableArray());
 	}
 }
