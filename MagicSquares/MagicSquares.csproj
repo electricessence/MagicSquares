@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="IndexesX.cs" />
-    <Compile Remove="LazyNode.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Open.Collections.Numeric" Version="1.5.0" />
   </ItemGroup>
 

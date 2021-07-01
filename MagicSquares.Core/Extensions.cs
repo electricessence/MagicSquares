@@ -1,4 +1,5 @@
-﻿using Open.Disposable;
+﻿using Open.Collections;
+using Open.Disposable;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -91,9 +92,22 @@ namespace MagicSquares
 			var sizeX = square.GetLength(0);
 			var sizeY = square.GetLength(1);
 			return IsMagicSquare(
-				square.Rows().Select(c=>c.ToArray()).ToArray(),
+				square.Rows().Select(c => c.ToArray()).ToArray(),
 				sizeX, 0, false);
 		}
+
+		public static IEnumerable<IReadOnlyList<int>> MagicSquares(
+			this IEnumerable<IReadOnlyList<int>> source,
+			int size,
+			bool checkDistinct = false)
+			=> checkDistinct
+				? source.AsParallel().Where(e =>
+				{
+					using var rows = e.Rows(size).Memoize();
+					return e.Rows(size).IsMagicSquare(size, 0, true) && rows.AllDistinct();
+				})
+				: source.Where(e => e.Rows(size).IsMagicSquare(size, 0, true));
+
 
 		public static IEnumerable<IEnumerable<T>> Columns<T>(this T[,] source)
 		{
@@ -110,6 +124,31 @@ namespace MagicSquares
 			return Enumerable.Range(0, sizeY)
 				.Select(y => Enumerable.Range(0, sizeX).Select(x => source[y, x]));
 		}
+
+		static IEnumerable<T[]> Rows<T>(this IEnumerable<T> source, int width)
+		{
+			var pool = ArrayPool<T>.Shared;
+			var buffer = pool.Rent(width);
+			var i = 0;
+			try
+			{
+				foreach (var e in source)
+				{
+					buffer[i] = e;
+					if(++i==width)
+					{
+						yield return buffer;
+						i = 0;
+					}
+				}
+				if (i != 0) throw new ArgumentException("The source values did not divide evenly into the width.");
+			}
+			finally
+			{
+				pool.Return(buffer);
+			}
+		}
+
 
 		public static IEnumerable<T> Row<T>(this T[,] source, int index)
 		{

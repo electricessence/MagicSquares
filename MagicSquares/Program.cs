@@ -5,6 +5,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace MagicSquares
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares with a sum of {2}...", size, len, firstSum);
 
-
+			var sw = Stopwatch.StartNew();
 			var verification = new HashSet<string>();
 			// Get N rows and test them.
 			Parallel.ForEach(s.Subsets(size), rows =>
@@ -73,6 +74,7 @@ namespace MagicSquares
 			{
 				Console.WriteLine("Total found: {0}", verification.Count);
 			}
+			Console.Write(sw.Elapsed);
 		}
 
 		static IEnumerable<T[]> Arrangments<T>(IReadOnlyList<IEnumerable<T>> source)
