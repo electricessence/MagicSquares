@@ -1,5 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Open.Numeric;
+using Open.Collections.Numeric;
 using System.Linq;
 
 namespace MagicSquaresTests
@@ -7,49 +7,49 @@ namespace MagicSquaresTests
 	[TestClass]
 	public class SumCombinationTests
 	{
-		readonly PossibleAddens SC = new();
+		readonly PossibleAddends SC = new();
 
 		[TestMethod]
 		public void NoAddendsLessThan2()
 		{
 			for(int i = 0;i<2;i++)
-				Assert.AreEqual(0, SC.UniqueAddensFor(7, i).Count);
+				Assert.AreEqual(0, SC.UniqueAddendsFor(7, i).Count);
 		}
 
 		[TestMethod]
 		public void NoAddendsWithLowSum()
 		{
 			for (int i = 0; i < 4; i++)
-				Assert.AreEqual(0, SC.UniqueAddensFor(2, i).Count);
+				Assert.AreEqual(0, SC.UniqueAddendsFor(2, i).Count);
 		}
 
 		[TestMethod]
 		public void AddendsFor2()
 		{
 			{
-				var result = SC.UniqueAddensFor(3, 2);
+				var result = SC.UniqueAddendsFor(3, 2);
 				Assert.AreEqual(1, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(4, 2);
+				var result = SC.UniqueAddendsFor(4, 2);
 				Assert.AreEqual(1, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 3 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(5, 2);
+				var result = SC.UniqueAddendsFor(5, 2);
 				Assert.AreEqual(2, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 4 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 2, 3 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(6, 2);
+				var result = SC.UniqueAddendsFor(6, 2);
 				Assert.AreEqual(2, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 5 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 2, 4 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(7, 2);
+				var result = SC.UniqueAddendsFor(7, 2);
 				Assert.AreEqual(3, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 6 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 2, 5 }));
@@ -64,35 +64,35 @@ namespace MagicSquaresTests
 			{
 				for(int i = 0;i<6;i++)
 				{
-					var result = SC.UniqueAddensFor(i, 3);
+					var result = SC.UniqueAddendsFor(i, 3);
 					Assert.AreEqual(0, result.Count);
 				}
 			}
 			{
-				var result = SC.UniqueAddensFor(6, 3);
+				var result = SC.UniqueAddendsFor(6, 3);
 				Assert.AreEqual(1, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 3 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(7, 3);
+				var result = SC.UniqueAddendsFor(7, 3);
 				Assert.AreEqual(1, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 4 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(8, 3);
+				var result = SC.UniqueAddendsFor(8, 3);
 				Assert.AreEqual(2, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 5 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 1, 3, 4 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(9, 3);
+				var result = SC.UniqueAddendsFor(9, 3);
 				Assert.AreEqual(3, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 6 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 1, 3, 5 }));
 				Assert.IsTrue(result[2].SequenceEqual(new int[] { 2, 3, 4 }));
 			}
 			{
-				var result = SC.UniqueAddensFor(10, 3);
+				var result = SC.UniqueAddendsFor(10, 3);
 				Assert.AreEqual(4, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 7 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 1, 3, 6 }));
@@ -101,7 +101,7 @@ namespace MagicSquaresTests
 			}
 
 			{
-				var result = SC.UniqueAddensFor(15, 3);
+				var result = SC.UniqueAddendsFor(15, 3);
 				Assert.AreEqual(12, result.Count);
 				Assert.IsTrue(result[0].SequenceEqual(new int[] { 1, 2, 12 }));
 				Assert.IsTrue(result[1].SequenceEqual(new int[] { 1, 3, 11 }));

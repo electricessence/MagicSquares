@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MagicSquaresFinder", "Magic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MagicSquareGenerator", "MagicSquareCreator\MagicSquareGenerator.csproj", "{CA953A02-589E-4E05-A692-88576A0B3825}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Open.Numeric.Combinations", "Open.Numeric.Combinations\Open.Numeric.Combinations.csproj", "{758FB4C9-CF98-42FD-B1CC-86F70747B17A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicSquares.Core", "MagicSquares.Core\MagicSquares.Core.csproj", "{78E4C314-45FE-4FF8-9EE6-4286DB221F8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{CA953A02-589E-4E05-A692-88576A0B3825}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA953A02-589E-4E05-A692-88576A0B3825}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA953A02-589E-4E05-A692-88576A0B3825}.Release|Any CPU.Build.0 = Release|Any CPU
-		{758FB4C9-CF98-42FD-B1CC-86F70747B17A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{758FB4C9-CF98-42FD-B1CC-86F70747B17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{758FB4C9-CF98-42FD-B1CC-86F70747B17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{758FB4C9-CF98-42FD-B1CC-86F70747B17A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78E4C314-45FE-4FF8-9EE6-4286DB221F8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78E4C314-45FE-4FF8-9EE6-4286DB221F8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78E4C314-45FE-4FF8-9EE6-4286DB221F8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78E4C314-45FE-4FF8-9EE6-4286DB221F8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

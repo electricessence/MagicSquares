@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Open.Collections;
 using Open.Memory;
-using Open.Numeric;
 
 namespace MagicSquares
 {
@@ -19,24 +18,24 @@ namespace MagicSquares
 			Length = (ushort)(sizeInt * sizeInt);
 
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
-			Combinations = values.Permutations().Select(GetCombination).Memoize();
-			UniqueCombinations = Combinations.Where(c => c.IsPrimary).Memoize();
+			Permutations = values.Permutations().Select(GetPermutation).Memoize();
+			UniquePermutations = Permutations.Where(c => c.IsPrimary).Memoize();
 		}
 
 		public byte Size { get; }
 
 		public ushort Length { get; }
 
-		public IReadOnlyList<Combination> Combinations { get; }
+		public IReadOnlyList<Permutation> Permutations { get; }
 
-		public IReadOnlyList<Combination> UniqueCombinations { get; }
+		public IReadOnlyList<Permutation> UniquePermutations { get; }
 
 
-		static readonly IComparer<IReadOnlyCollection<uint>> Comparer = CollectionComparer<uint>.Ascending;
-		public class Combination
+		static readonly IComparer<IReadOnlyCollection<int>> Comparer = CollectionComparer<int>.Ascending;
+		public class Permutation
 		{
 
-			internal Combination(Square square, IReadOnlyList<uint> values)
+			internal Permutation(Square square, IReadOnlyList<int> values)
 			{
 				Square = square ?? throw new ArgumentNullException(nameof(square));
 				if (values is null) throw new ArgumentNullException(nameof(values));
@@ -44,7 +43,7 @@ namespace MagicSquares
 
 				Values = values;
 				Hash = GetHash(values);
-				var variations = new Lazy<IReadOnlyList<uint>[]>(() =>
+				var variations = new Lazy<IReadOnlyList<int>[]>(() =>
 				{
 					var variations = GetVariations().ToArray();
 					Array.Sort(variations, Comparer);
@@ -53,34 +52,47 @@ namespace MagicSquares
 
 				_isPrimary = new Lazy<bool>(() => variations.Value.First().Equals(values));
 
-				Group = new Lazy<IReadOnlyList<Lazy<Combination>>>(() =>
+				Group = new Lazy<IReadOnlyList<Lazy<Permutation>>>(() =>
 				{
 					if (_isPrimary.Value)
 					{
-						return variations.Value.Select(v => new Lazy<Combination>(() => Square.GetCombination(v))).Memoize();
+						return variations.Value.Select(v => new Lazy<Permutation>(() => Square.GetPermutation(v))).Memoize();
 					}
 					else
 					{
-						return Square.GetCombination(variations.Value.First()).Group.Value;
+						return Square.GetPermutation(variations.Value.First()).Group.Value;
 					}
 				});
 			}
 
 			public Square Square { get; }
 
-			public IReadOnlyList<uint> Values { get; }
+			public IReadOnlyList<int> Values { get; }
 
-			public Lazy<IReadOnlyList<Lazy<Combination>>> Group { get; }
+			public Lazy<IReadOnlyList<Lazy<Permutation>>> Group { get; }
 
 			public string Hash { get; }
 
 			readonly Lazy<bool> _isPrimary;
 			public bool IsPrimary => _isPrimary.Value;
 
-			public static string GetHash(IEnumerable<uint> values) => string.Join(' ', values);
+			public int[,] ToXYGrid()
+			{
+				var size = Square.Size;
+				var grid = new int[size, size];
+				for(var y = 0; y<size ;++y )
+				{
+					for (var x = 0; x < size; ++x)
+					{
+						grid[x, y] = Values[x + y * size];
+					}
+				}
+				return grid;
+			}
+
 			public static string GetHash(IEnumerable<int> values) => string.Join(' ', values);
 
-			public IEnumerable<IReadOnlyList<uint>> GetVariations()
+			public IEnumerable<IReadOnlyList<int>> GetVariations()
 			{
 				var values = Values;
 				yield return values;
@@ -118,11 +130,9 @@ namespace MagicSquares
 			}
 		}
 
-		readonly ConcurrentDictionary<string, Lazy<Combination>> Registry = new();
+		readonly ConcurrentDictionary<string, Lazy<Permutation>> Registry = new();
 
-        public Combination GetCombination(IReadOnlyList<uint> values)
-			=> Registry.GetOrAdd(Combination.GetHash(values), key => new Lazy<Combination>(() => new Combination(this, values))).Value;
-		public Combination GetCombination(IEnumerable<int> values)
-			=> Registry.GetOrAdd(Combination.GetHash(values), key => new Lazy<Combination>(() => new Combination(this, values.Select(Convert.ToUInt32).ToImmutableArray()))).Value;
+        public Permutation GetPermutation(IReadOnlyList<int> values)
+			=> Registry.GetOrAdd(Permutation.GetHash(values), key => new Lazy<Permutation>(() => new Permutation(this, values))).Value;
 	}
 }

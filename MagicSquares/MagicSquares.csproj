@@ -13,14 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.ChannelExtensions" Version="5.0.0" />
-    <PackageReference Include="Open.Collections" Version="2.10.1" />
-    <PackageReference Include="Open.Hierarchy" Version="1.8.1" />
-    <PackageReference Include="Open.MemoryExtensions" Version="2.8.0" />
+    <PackageReference Include="Open.Collections.Numeric" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Open.Numeric.Combinations\Open.Numeric.Combinations.csproj" />
+    <ProjectReference Include="..\MagicSquares.Core\MagicSquares.Core.csproj" />
   </ItemGroup>
 
 </Project>

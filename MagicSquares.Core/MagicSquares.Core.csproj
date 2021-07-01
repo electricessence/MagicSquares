@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Open.Collections" Version="2.10.1" />
+    <PackageReference Include="Open.Disposable.ObjectPools" Version="2.6.0" />
+    <PackageReference Include="Open.MemoryExtensions" Version="2.8.0" />
+  </ItemGroup>
+
+</Project>

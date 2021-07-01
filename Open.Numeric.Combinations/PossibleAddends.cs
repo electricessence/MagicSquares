@@ -6,21 +6,21 @@ using System.Collections.Immutable;
 
 namespace Open.Numeric
 {
-	public class PossibleAddens
+	public class PossibleAddends : IDisposable
 	{
-		public PossibleAddens()
+		public PossibleAddends()
 		{
 		}
 
 		readonly ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>> Cache
 			= new ConcurrentDictionary<int, ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>>();
 
-		public IReadOnlyList<IReadOnlyList<int>> UniqueAddensFor(int sum, int count)
+		public IReadOnlyList<IReadOnlyList<int>> UniqueAddendsFor(int sum, int count)
 			=> Cache
 				.GetOrAdd(count, key => new ConcurrentDictionary<int, IReadOnlyList<IReadOnlyList<int>>>())
-				.GetOrAdd(sum, key => GetUniqueAddens(sum, count).Memoize());
+				.GetOrAdd(sum, key => GetUniqueAddends(sum, count).Memoize());
 
-		public IEnumerable<IReadOnlyList<int>> GetUniqueAddens(int sum, int count)
+		public IEnumerable<IReadOnlyList<int>> GetUniqueAddends(int sum, int count)
 		{
 			if (count > int.MaxValue)
 				throw new ArgumentOutOfRangeException(nameof(count), count, "Cannot be greater than signed 32 bit integer maximum.");
@@ -48,7 +48,7 @@ namespace Open.Numeric
 				while (++i < sum)
 				{
 					var next = sum - i;
-					var addends = UniqueAddensFor(i, count - 1);
+					var addends = UniqueAddendsFor(i, count - 1);
 					foreach (var a in addends)
 					{
 						builder.Capacity = capacity;
@@ -60,5 +60,7 @@ namespace Open.Numeric
 				}
 			}
 		}
+
+		public void Dispose() => Cache.Clear();
 	}
 }

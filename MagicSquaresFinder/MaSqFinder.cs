@@ -1,24 +1,22 @@
-﻿using MagicSquares;
-using Open.Collections;
-using Open.Numeric;
+﻿using Open.Collections;
+using Open.Collections.Numeric;
 using Open.Threading;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace MagicSquaresFinder
 {
-    public partial class MaSqFinder : Form
+	public partial class MaSqFinder : Form
 	{
 		public MaSqFinder()
 		{
 			InitializeComponent();
 		}
 
-		readonly PossibleAddens PossibleAddens = new();
+		readonly PossibleAddends PossibleAddens = new();
 
 		public int CombinationLength => (int)CombinationLengthField.Value;
 
@@ -31,7 +29,7 @@ namespace MagicSquaresFinder
 			=> Enumerable.Range(0, CombinationLength).Permutations();
 
 		public IReadOnlyList<IReadOnlyList<int>> PossibleAddenValues
-			=> PossibleAddens.UniqueAddensFor(PossibleAddensSum, (int)PossibleAddensCount);
+			=> PossibleAddens.UniqueAddendsFor(PossibleAddensSum, (int)PossibleAddensCount);
 
 		readonly DataTable CombinationSource = new();
 		readonly DataTable PossibleAddensSource = new();
