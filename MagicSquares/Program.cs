@@ -25,6 +25,7 @@ namespace MagicSquares
 			Console.WriteLine("First possible square (starting with 1):");
 			var square = new Square(size);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
+			//var defaultSquareHash = defaultSquare.ToMatrixString();
 			square.GetPermutation(defaultSquare).Primary.Matrix.OutputToConsole();
 			Console.WriteLine();
 
@@ -77,17 +78,23 @@ namespace MagicSquares
 				using var c = rows.Select(r => r.Permutations()).Memoize();
 
 				// Next, group each possible configuration of these rows and look for a winner.
-				foreach (var config in c.RowConfigurations().Where(a => a.IsMagicSquare(size, firstSum, true)))
+				foreach (var magic in c.RowConfigurations().Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
-					// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
-					var p = square.GetPermutation(config, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
-					if (!verification.Add(p.Hash)) return;
-					var comment = p.Matrix.IsPerfectMagicSquare() ? "(perfect)" : string.Empty;
-					lock (square)
+					// Ok!  Found one.  Let's expand the set the possible row configurations.
+					foreach(var rowPermutation in magic.Take(size).Permutations())
 					{
-						Console.WriteLine();
-						Console.WriteLine("{0}: {1}", ++count, comment);
-						p.Matrix.OutputToConsole();
+						// Now reduce the set further by eliminating any flips or rotations.
+						var p = square.GetPermutation(rowPermutation, ignoreOversize: true);
+						var pri = p.Primary; // Get the normalized version of the matrix.
+						//if (!verification.Add(p.Hash)) return;
+
+						var comment = p.Matrix.IsPerfectMagicSquare() ? "(perfect)" : string.Empty;
+						lock (square)
+						{
+							Console.WriteLine();
+							Console.WriteLine("{0}: {1}", ++count, comment);
+							p.Matrix.OutputToConsole();
+						}
 					}
 				}
 			});

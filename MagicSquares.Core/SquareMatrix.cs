@@ -334,14 +334,15 @@ namespace MagicSquares.Core
 			var columns = pool.Rent(size);
 			try
 			{
-				for (var y = 0; y < 0; ++y)
+				for (var y = 0; y < size; ++y)
 				{
 					var rowSum = 0;
-					for (var x = 0; x < 0; ++x)
+					for (var x = 0; x < size; ++x)
 					{
 						var cell = square[x, y];
 						rowSum += cell;
-						columns[x] += cell;
+						if (y == 0) columns[x] = cell;
+						else columns[x] += cell;
 					}
 
 					if (sum == 0) sum = rowSum;
@@ -364,36 +365,37 @@ namespace MagicSquares.Core
 			var pool = ArrayPool<int>.Shared;
 			var size = square.Size;
 			var columns = pool.Rent(size);
-			var right = pool.Rent(size);
-			var left = pool.Rent(size);
+			var right = 0;
+			var left = 0;
 			try
 			{
-				for (var y = 0; y < 0; ++y)
+				for (var y = 0; y < size; ++y)
 				{
 					var rowSum = 0;
-					for (var x = 0; x < 0; ++x)
+					for (var x = 0; x < size; ++x)
 					{
 						var cell = square[x, y];
 						rowSum += cell;
-						columns[x] += cell;
-						if (x == y) right[x] += cell;
-						else if (size - x - 1 == y) left[x] += cell;
+						if (y == 0) columns[x] = cell;
+						else columns[x] += cell;
+						if (x == y) right += cell;
+						if (size - x - 1 == y) left += cell;
 					}
 
 					if (sum == 0) sum = rowSum;
 					else if (rowSum != sum) return false;
 				}
 
+				if (left != sum || right != sum) return false;
+
 				for (var i = 0; i < size; i++)
-					if (columns[i] != sum || left[i] != sum || right[i] != sum) return false;
+					if (columns[i] != sum) return false;
 
 				return true;
 			}
 			finally
 			{
 				pool.Return(columns);
-				pool.Return(right);
-				pool.Return(left);
 			}
 
 		}
