@@ -3,38 +3,46 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MagicSquares.Core
 {
 	public class ConsoleEmitter
 	{
-		public ConsoleEmitter(Square square)
+		public ConsoleEmitter(Square square, bool parallelProcessing = true)
 		{
 			Size = square.Size;
 			Square = square;
-		}
+            ParallelProcessing = parallelProcessing;
+        }
 
 		public int Size { get; }
 		public Square Square { get; }
+        public bool ParallelProcessing { get; }
 
 		public int Start(IReadOnlyList<IReadOnlyList<int>> combinations, int sum = 0, string summaryHeader = null)
 		{
 			var count = 0;
 			var sw = Stopwatch.StartNew();
 			var verification = new ConcurrentHashSet<string>();
-
+			var plausibleCount = 0;
 			// As long as diagnal values are not important, once a magic square is found, its rows or columns can be shuffled and all numbers will still add up.
 			// Then get all row (set) permutations.
 			// The order of the rows doesn't matter yet as long as they add up.
-			Parallel.ForEach(combinations.Subsets(Size), rows =>
+			if (ParallelProcessing)
+				Parallel.ForEach(combinations.Subsets(Size), ProcessRows);
+			else
+				foreach (var rows in combinations.Subsets(Size)) ProcessRows(rows);
+
+			void ProcessRows(IReadOnlyList<int>[] rows)
 			{
 				// Check the sums first if need be.
 				var localSum = sum;
-				if(localSum == 0)
+				if (localSum == 0)
 				{
 					bool first = true;
-					foreach(var row in rows)
+					foreach (var row in rows)
 					{
 						if (first)
 						{
@@ -47,6 +55,8 @@ namespace MagicSquares.Core
 						}
 					}
 				}
+
+				Interlocked.Increment(ref plausibleCount);
 
 				if (!rows.SelectMany(e => e).AllDistinct()) return;
 				// Discovered a valid set!  We know the rows already add up.
@@ -74,15 +84,18 @@ namespace MagicSquares.Core
 						}
 					}
 				}
-			});
+			}
 
-			lock(Square)
-			{
-				Console.WriteLine();
-				if (summaryHeader != null) Console.WriteLine(summaryHeader);
-				Console.WriteLine("Total groupings found: {0}", count);
-				Console.Write(sw.Elapsed);
-				Console.WriteLine();
+			if (plausibleCount!=0)
+            {
+				lock (Square)
+				{
+					Console.WriteLine();
+					if (summaryHeader != null) Console.WriteLine(summaryHeader);
+					Console.WriteLine("Total groupings found: {0}", count);
+					Console.Write(sw.Elapsed);
+					Console.WriteLine();
+				}
 			}
 
 			return count;
