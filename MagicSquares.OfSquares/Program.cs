@@ -38,7 +38,7 @@ namespace MagicSquares.OfSquares
                 using var subsets = combination.Subsets(size).Memoize();
                 emmitter.Start(subsets, summaryHeader: $"Candidate: {string.Join(' ', combination)}");
                 var c = Interlocked.Increment(ref count);
-                if (c % 10000 == 0)
+                if (c % 100 == 0)
                 {
                     lock (square)
                     {

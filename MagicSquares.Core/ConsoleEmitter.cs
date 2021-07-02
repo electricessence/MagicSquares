@@ -93,7 +93,7 @@ namespace MagicSquares.Core
 					Console.WriteLine();
 					if (summaryHeader != null) Console.WriteLine(summaryHeader);
 					Console.WriteLine("Total groupings found: {0}", count);
-					Console.Write(sw.Elapsed);
+					Console.Write("{0} milliseconds", sw.Elapsed.TotalMilliseconds);
 					Console.WriteLine();
 				}
 			}
