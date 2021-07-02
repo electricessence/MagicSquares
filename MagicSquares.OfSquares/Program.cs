@@ -14,7 +14,7 @@ namespace MagicSquares.OfSquares
         static void Main()
         {
             Console.Write("Enter the size of the desired Magic Square: ");
-            var size = byte.Parse(Console.ReadLine() ?? string.Empty);
+            var size = byte.Parse(Console.ReadLine());
             if (size < 3)
             {
                 Console.WriteLine("Invalid size.  Must be at least 3.");
@@ -22,8 +22,19 @@ namespace MagicSquares.OfSquares
             }
 
             var square = new Square(size);
-            var emmitter = new ConsoleEmitter(square);
             var len = square.Length;
+
+            Console.Write("Enter the first number in the search range: ");
+            var first = byte.Parse(Console.ReadLine());
+            Console.Write("Enter the last number in the search range: ");
+            var last = byte.Parse(Console.ReadLine());
+            if (last < first + len - 1)
+            {
+                Console.WriteLine("Last must be at least the value of the tail of the possible set.");
+                return;
+            }
+
+            var emitter = new ConsoleEmitter(square);
             var count = 0;
 
             Console.WriteLine();
@@ -31,12 +42,12 @@ namespace MagicSquares.OfSquares
 
             var sw = Stopwatch.StartNew();
             Parallel.ForEach(
-                Enumerable.Range(2, 127).Shuffle().Select(v => v * v).ToImmutableArray().Subsets(len),
+                Enumerable.Range(1, last-first+1).Select(v => v * v).ToImmutableArray().Subsets(len),
                 new ParallelOptions { MaxDegreeOfParallelism = 2 },
                 combination =>
             {
                 using var subsets = combination.Subsets(size).Memoize();
-                emmitter.Start(subsets, summaryHeader: $"Candidate: {string.Join(' ', combination)}");
+                emitter.Start(subsets, summaryHeader: $"Candidate: {string.Join(' ', combination)}");
                 var c = Interlocked.Increment(ref count);
                 if (c % 100 == 0)
                 {
