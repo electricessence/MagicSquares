@@ -3,6 +3,7 @@ using Open.Disposable;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -208,6 +209,27 @@ namespace MagicSquares
 			finally
 			{
 				listPool.Give(enumerators);
+			}
+		}
+
+		public static IEnumerable<T[]> RowConfigurations<T>(this IReadOnlyList<IReadOnlyList<T>> rowPerms, ImmutableArray<ImmutableArray<int>> combinationGrid)
+		{
+			var pool = ArrayPool<T>.Shared;
+			var result = pool.Rent(rowPerms.Count);
+			try
+			{
+				foreach (var combination in combinationGrid)
+				{
+					for (var r = 0; r < rowPerms.Count; r++)
+					{
+						result[r] = rowPerms[r][combination[r]];
+					}
+					yield return result;
+				}
+			}
+			finally
+			{
+				pool.Return(result);
 			}
 		}
 	}

@@ -2,6 +2,8 @@
 using Open.Collections;
 using Open.Collections.Numeric;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,7 +48,13 @@ namespace MagicSquares
 				Console.WriteLine("Possible subsets:");
 				var possibleSubsets = s.Subsets(size).Where(e => e.SelectMany(e => e).AllDistinct());
 				foreach (var subset in possibleSubsets)
-					Console.WriteLine(string.Join(' ', subset.Select(u => $"[{string.Join(' ', u)}]")));
+				{
+					Console.WriteLine();
+					Console.WriteLine(string.Join('\n',
+						subset.Select(u => $"{PermuString(u)} => {string.Join(' ', u.Permutations().Select(u => PermuString(u)))}")));
+				}
+
+				static string PermuString(IReadOnlyList<int> u) => $"[{string.Join(' ', u)}]";
 			}
 
 			Console.WriteLine();
@@ -58,7 +66,7 @@ namespace MagicSquares
 
 			// As long as diagnal values are not important, once a magic square is found, its rows or columns can be shuffled and all numbers will still add up.
 			// Then get all row (set) permutations.
-			// The order of the rows doesn't matter as long as they add up.
+			// The order of the rows doesn't matter yet as long as they add up.
 			Parallel.ForEach(s.Subsets(size), rows =>
 			{
 				if (!rows.SelectMany(e => e).AllDistinct()) return;
@@ -69,7 +77,7 @@ namespace MagicSquares
 				using var c = rows.Select(r => r.Permutations()).Memoize();
 
 				// Next, group each possible configuration of these rows and look for a winner.
-				foreach (var config in c.RowConfigurations().Skip(1).Where(a => a.IsMagicSquare(size, firstSum, true)))
+				foreach (var config in c.RowConfigurations().Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
 					// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
 					var p = square.GetPermutation(config, ignoreOversize: true).Primary; // Get the normalized version of the matrix.

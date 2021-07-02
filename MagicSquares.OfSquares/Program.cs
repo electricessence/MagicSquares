@@ -60,6 +60,7 @@ namespace MagicSquares.OfSquares
 
 				// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
 				using var c = rows.Select(r => r.Permutations()).Memoize();
+				// Think of 'c' as an enumerable of 'row possibilities' for each row.
 
 				// Next, group each possible configuration of these rows and look for a winner.
 				foreach (var config in c.RowConfigurations().Where(a => a.IsMagicSquare(size, targetSum, true)))
