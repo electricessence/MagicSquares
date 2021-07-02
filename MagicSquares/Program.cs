@@ -3,7 +3,6 @@ using Open.Collections;
 using Open.Collections.Numeric;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +24,6 @@ namespace MagicSquares
 			Console.WriteLine("First possible square (starting with 1):");
 			var square = new Square(size);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
-			//var defaultSquareHash = defaultSquare.ToMatrixString();
 			square.GetPermutation(defaultSquare).Primary.Matrix.OutputToConsole();
 			Console.WriteLine();
 
@@ -84,9 +82,8 @@ namespace MagicSquares
 					foreach(var rowPermutation in magic.Take(size).Permutations())
 					{
 						// Now reduce the set further by eliminating any flips or rotations.
-						var p = square.GetPermutation(rowPermutation, ignoreOversize: true);
-						var pri = p.Primary; // Get the normalized version of the matrix.
-						//if (!verification.Add(p.Hash)) return;
+						var p = square.GetPermutation(rowPermutation, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
+						if (!verification.Add(p.Hash)) continue;
 
 						var comment = p.Matrix.IsPerfectMagicSquare() ? "(perfect)" : string.Empty;
 						lock (square)
