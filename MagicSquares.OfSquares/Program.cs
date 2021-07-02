@@ -31,7 +31,7 @@ namespace MagicSquares.OfSquares
 
             var sw = Stopwatch.StartNew();
             Parallel.ForEach(
-                Enumerable.Range(0, 256).Select(v => v * v).ToImmutableArray().Subsets(len),
+                Enumerable.Range(2, 127).Shuffle().Select(v => v * v).ToImmutableArray().Subsets(len),
                 new ParallelOptions { MaxDegreeOfParallelism = 2 },
                 combination =>
             {
