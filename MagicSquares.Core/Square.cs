@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Open.Collections;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using Open.Collections;
 
 namespace MagicSquares.Core
 {
@@ -13,14 +12,14 @@ namespace MagicSquares.Core
 		public Square(byte size)
 		{
 			Size = size;
-            var sizeInt = (int)size;
+			var sizeInt = (int)size;
 			Length = (ushort)(sizeInt * sizeInt);
 
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
 			Permutations = values
 				.PermutationsBuffered()
-				.Select(p=>p.Take(Length).ToImmutableArray())
-				.Select(p=>GetPermutation(p))
+				.Select(p => p.Take(Length).ToImmutableArray())
+				.Select(p => GetPermutation(p))
 				.Memoize();
 
 			UniquePermutations = Permutations.Where(c => c.IsPrimary).Memoize();
@@ -99,7 +98,7 @@ namespace MagicSquares.Core
 
 		readonly ConcurrentDictionary<string, Lazy<Permutation>> Registry = new();
 
-        public Permutation GetPermutation(SquareMatrix<int> values)
+		public Permutation GetPermutation(SquareMatrix<int> values)
 			=> Registry.GetOrAdd(values.ToMatrixString(), key => new Lazy<Permutation>(() => new Permutation(this, values))).Value;
 
 		public Permutation GetPermutation(IEnumerable<IEnumerable<int>> values, bool ignoreOversize = false)

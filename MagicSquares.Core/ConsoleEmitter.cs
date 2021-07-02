@@ -14,12 +14,12 @@ namespace MagicSquares.Core
 		{
 			Size = square.Size;
 			Square = square;
-            ParallelProcessing = parallelProcessing;
-        }
+			ParallelProcessing = parallelProcessing;
+		}
 
 		public int Size { get; }
 		public Square Square { get; }
-        public bool ParallelProcessing { get; }
+		public bool ParallelProcessing { get; }
 
 		public int Start(IReadOnlyList<IReadOnlyList<int>> combinations, int sum = 0, string summaryHeader = null)
 		{
@@ -86,8 +86,8 @@ namespace MagicSquares.Core
 				}
 			}
 
-			if (plausibleCount!=0)
-            {
+			if (plausibleCount != 0)
+			{
 				lock (Square)
 				{
 					Console.WriteLine();

@@ -1,5 +1,4 @@
-﻿using MagicSquares;
-using MagicSquares.Core;
+﻿using MagicSquares.Core;
 using System;
 
 namespace MagicSquareGenerator
