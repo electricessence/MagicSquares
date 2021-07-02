@@ -41,7 +41,7 @@ namespace MagicSquares
 			foreach (var pa in s)
 				Console.WriteLine(string.Join(' ', pa));
 
-			if(size==3)
+			if (size == 3)
 			{
 				Console.WriteLine();
 				Console.WriteLine("Possible subsets:");
@@ -79,7 +79,7 @@ namespace MagicSquares
 				foreach (var magic in c.RowConfigurations().Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
 					// Ok!  Found one.  Let's expand the set the possible row configurations.
-					foreach(var rowPermutation in magic.Take(size).Permutations())
+					foreach (var rowPermutation in magic.Take(size).Permutations())
 					{
 						// Now reduce the set further by eliminating any flips or rotations.
 						var p = square.GetPermutation(rowPermutation, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
@@ -100,24 +100,6 @@ namespace MagicSquares
 			Console.WriteLine("Total groupings found: {0}", count);
 			Console.Write(sw.Elapsed);
 			Console.WriteLine();
-
-			//sw.Reset();
-			//verification.Clear();
-			//var values = Enumerable.Range(1, len).ToArray();
-			//sw.Start();
-			//foreach (var e in values.Permutations().MagicSquares(size))
-			//{
-			//	var p = square.GetPermutation(e).Primary;
-			//	if (!verification.Add(p.Hash)) continue;
-			//	Console.WriteLine();
-			//	Console.WriteLine("{0}:", verification.Count);
-			//	p.ToXYGrid().OutputToConsole(size);
-			//}
-
-			//Console.WriteLine();
-			//Console.WriteLine("Total found: {0}", verification.Count);
-			//Console.Write(sw.Elapsed);
-			//Console.WriteLine();
 		}
 
 	}
