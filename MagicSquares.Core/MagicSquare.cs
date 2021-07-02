@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace MagicSquares
+namespace MagicSquares.Core
 {
 	public static class MagicSquare
 	{
-		public static int[,] CreateFromFirst(int size, in int first)
+		public static SquareMatrix<int> CreateFromFirst(int size, in int first)
 		{
 			if (size < 3) throw new ArgumentOutOfRangeException(nameof(size), size, "Must be at least 3.");
-
 
 			var length = size * size;
 			var bounds = first + length;
@@ -137,8 +136,9 @@ namespace MagicSquares
 				}
 			}
 
-			Debug.Assert(grid.IsMagicSquare());
-			return grid;
+			var square = SquareMatrix<int>.Create(grid, size);
+			Debug.Assert(square.IsPerfectMagicSquare());
+			return square;
 		}
 	}
 }

@@ -1,7 +1,7 @@
-﻿using Open.Collections;
+﻿using MagicSquares.Core;
+using Open.Collections;
 using Open.Collections.Numeric;
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace MagicSquares
 			Console.WriteLine("First possible square (starting with 1):");
 			var square = new Square(size);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
-			square.GetPermutation(defaultSquare.Flat().ToImmutableArray()).Primary.ToXYGrid().OutputToConsole(size);
+			square.GetPermutation(defaultSquare).Primary.Matrix.OutputToConsole();
 			Console.WriteLine();
 
 			// REDUCING THE SEARCH SPACE IS THE KEY.
@@ -72,13 +72,14 @@ namespace MagicSquares
 				foreach (var config in c.RowConfigurations().Skip(1).Where(a => a.IsMagicSquare(size, firstSum, true)))
 				{
 					// Ok!  Found one.  Now reduce the set further by eliminating any flips or rotations.
-					var p = square.GetPermutation(config, size).Primary; // Get the normalized version of the matrix.
+					var p = square.GetPermutation(config, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
 					if (!verification.Add(p.Hash)) return;
+					var comment = p.Matrix.IsPerfectMagicSquare() ? "(perfect)" : string.Empty;
 					lock (square)
 					{
 						Console.WriteLine();
-						Console.WriteLine("{0}:", ++count);
-						p.ToXYGrid().OutputToConsole(size);
+						Console.WriteLine("{0}: {1}", ++count, comment);
+						p.Matrix.OutputToConsole();
 					}
 				}
 			});

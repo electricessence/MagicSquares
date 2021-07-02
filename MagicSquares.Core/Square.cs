@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Open.Collections;
-using Open.Memory;
 
-namespace MagicSquares
+namespace MagicSquares.Core
 {
 	public class Square
 	{
@@ -17,7 +16,12 @@ namespace MagicSquares
 			Length = (ushort)(sizeInt * sizeInt);
 
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
-			Permutations = values.Permutations().Select(GetPermutation).Memoize();
+			Permutations = values
+				.PermutationsBuffered()
+				.Select(p=>p.Take(Length).ToImmutableArray())
+				.Select(p=>GetPermutation(p))
+				.Memoize();
+
 			UniquePermutations = Permutations.Where(c => c.IsPrimary).Memoize();
 		}
 
@@ -29,27 +33,23 @@ namespace MagicSquares
 
 		public IReadOnlyList<Permutation> UniquePermutations { get; }
 
-
-		static readonly IComparer<IReadOnlyCollection<int>> Comparer = CollectionComparer<int>.Ascending;
 		public class Permutation
 		{
-
-			internal Permutation(Square square, IReadOnlyList<int> values)
+			internal Permutation(Square square, SquareMatrix<int> matrix)
 			{
 				Square = square ?? throw new ArgumentNullException(nameof(square));
-				if (values is null) throw new ArgumentNullException(nameof(values));
-				if (values.Count != Square.Length) throw new ArgumentException($"Length of values ({values.Count}) does not match expected ({Square.Length}).", nameof(values));
+				if (matrix.Length != Square.Length) throw new ArgumentException($"Length of values ({matrix.Length}) does not match expected ({Square.Length}).", nameof(matrix));
 
-				Values = values is ImmutableArray<int> v ? v : values.ToImmutableArray();
-				Hash = GetHash(values);
-				var variations = new Lazy<IReadOnlyList<int>[]>(() =>
+				Matrix = matrix;
+				Hash = Matrix.ToMatrixString();
+				var variations = new Lazy<SquareMatrix<int>[]>(() =>
 				{
 					var variations = GetVariations().ToArray();
-					Array.Sort(variations, Comparer);
+					Array.Sort(variations);
 					return variations;
 				});
 
-				_isPrimary = new Lazy<bool>(() => variations.Value[0].Equals(Values));
+				_isPrimary = new Lazy<bool>(() => variations.Value[0].Equals(Matrix));
 
 				Group = new Lazy<IReadOnlyList<Lazy<Permutation>>>(() =>
 				{
@@ -66,7 +66,7 @@ namespace MagicSquares
 
 			public Square Square { get; }
 
-			public IReadOnlyList<int> Values { get; }
+			public SquareMatrix<int> Matrix { get; }
 
 			public Lazy<IReadOnlyList<Lazy<Permutation>>> Group { get; }
 
@@ -77,66 +77,31 @@ namespace MagicSquares
 			readonly Lazy<bool> _isPrimary;
 			public bool IsPrimary => _isPrimary.Value;
 
-			public int[,] ToXYGrid()
-			{
-				var size = Square.Size;
-				var grid = new int[size, size];
-				for(var y = 0; y<size ;++y )
-				{
-					for (var x = 0; x < size; ++x)
-					{
-						grid[x, y] = Values[x + y * size];
-					}
-				}
-				return grid;
-			}
+			public override string ToString() => Hash;
 
-			public static string GetHash(IEnumerable<int> values) => string.Join(' ', values);
-
-			public IEnumerable<IReadOnlyList<int>> GetVariations()
+			public IEnumerable<SquareMatrix<int>> GetVariations()
 			{
-				var values = Values;
+				var values = Matrix;
 				yield return values;
-				var mirror = Square.GetMirror(values).ToImmutableArray();
+				SquareMatrix<int> mirror = values.GetMirrorX().ToImmutableArray();
 				yield return mirror;
 				for (var i = 0; i < 3; i++)
 				{
-					values = Square.GetRotated(values).ToImmutableArray();
+					values = values.GetRotatedCW().ToImmutableArray();
 					yield return values;
-					mirror = Square.GetRotated(mirror).ToImmutableArray();
+					mirror = mirror.GetRotatedCW().ToImmutableArray();
 					yield return mirror;
 				}
 			}
 		}
 
-		IEnumerable<T> GetMirror<T>(IReadOnlyList<T> items)
-		{
-			for (var n = 0; n < Size; ++n)
-			{
-				for (var i = Size - 1; i >= 0; --i)
-				{
-					yield return items[n * Size + i];
-				}
-			}
-		}
-
-		IEnumerable<T> GetRotated<T>(IReadOnlyList<T> items)
-		{
-			for (var i = 0; i < Size; ++i)
-			{
-				for (var n = Size - 1; n >= 0; --n)
-				{
-					yield return items[n * Size + i];
-				}
-			}
-		}
 
 		readonly ConcurrentDictionary<string, Lazy<Permutation>> Registry = new();
 
-        public Permutation GetPermutation(IReadOnlyList<int> values)
-			=> Registry.GetOrAdd(Permutation.GetHash(values), key => new Lazy<Permutation>(() => new Permutation(this, values))).Value;
+        public Permutation GetPermutation(SquareMatrix<int> values)
+			=> Registry.GetOrAdd(values.ToMatrixString(), key => new Lazy<Permutation>(() => new Permutation(this, values))).Value;
 
-		public Permutation GetPermutation(int[][] values, int size)
-			=> GetPermutation(values.Take(size).SelectMany(e => e).ToImmutableArray());
+		public Permutation GetPermutation(IEnumerable<IEnumerable<int>> values, bool ignoreOversize = false)
+			=> GetPermutation(SquareMatrix<int>.Create(values, Size, ignoreOversize));
 	}
 }

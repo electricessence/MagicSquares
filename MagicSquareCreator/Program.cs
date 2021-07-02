@@ -1,4 +1,5 @@
 ﻿using MagicSquares;
+using MagicSquares.Core;
 using System;
 
 namespace MagicSquareGenerator
@@ -15,7 +16,7 @@ namespace MagicSquareGenerator
 			var first = int.Parse(Console.ReadLine());
 			Console.WriteLine();
 
-			MagicSquare.CreateFromFirst(size, first).OutputToConsole(size);
+			MagicSquare.CreateFromFirst(size, first).OutputToConsole();
 		}
 	}
 }
