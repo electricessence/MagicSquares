@@ -104,5 +104,8 @@ namespace MagicSquares.Core
 
 		public Permutation GetPermutation(IEnumerable<IEnumerable<int>> values, bool ignoreOversize = false)
 			=> GetPermutation(SquareMatrix<int>.Create(values, Size, ignoreOversize));
+
+		public void ClearRegistry()
+			=> Registry.Clear();
 	}
 }
