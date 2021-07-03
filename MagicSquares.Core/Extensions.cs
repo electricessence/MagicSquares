@@ -131,7 +131,7 @@ namespace MagicSquares
 				foreach (var e in source)
 				{
 					buffer[i] = e;
-					if(++i==width)
+					if (++i == width)
 					{
 						yield return buffer;
 						i = 0;
