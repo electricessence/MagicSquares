@@ -40,6 +40,7 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares of squares...", size, len);
 
+			var sumsTested = new ConcurrentHashSet<int>();
 			
 			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
 			var squaresSet = squares.ToImmutableHashSet();
@@ -49,12 +50,12 @@ namespace MagicSquares.OfSquares
 				combination =>
 			{
 				var sum = combination.Sum();
-				var sums = new Open.Collections.Numeric.PossibleAddends();
-				var addends = sums
-					.UniqueAddendsFor(sum, size)
-					.Where(a => a.All(v => squaresSet.Contains(v)))
+				if (!sumsTested.Add(sum)) return;
+				var addends = Open.Collections.Numeric.PossibleAddends
+					.GetUniqueAddendsBuffered(sum, size)
+					.Where(a => a.Take(size).All(v => squaresSet.Contains(v)))
+					.Select(a=>a.ToArray())
 					.ToArray();
-				sums.Dispose();
 
 				if (addends.Length < size) return;
 
