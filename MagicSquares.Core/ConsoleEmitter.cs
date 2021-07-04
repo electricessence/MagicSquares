@@ -38,7 +38,7 @@ namespace MagicSquares.Core
 			else
 				foreach (var rows in combinations) ProcessRows(rows, sum, ref plausibleCount, ref count);
 
-			if (plausibleCount != 0) Report(summaryHeader, count, sw);
+			if (plausibleCount != 0 && !_verification.Any()) Report(summaryHeader, count, sw);
 
 			return count;
 		}
@@ -57,7 +57,7 @@ namespace MagicSquares.Core
 			else
 				foreach (var rows in combinations.Subsets(Size)) ProcessRows(rows, sum, ref plausibleCount, ref count);
 
-			if (plausibleCount != 0) Report(summaryHeader, count, sw);
+			if (plausibleCount != 0 && !_verification.Any()) Report(summaryHeader, count, sw);
 
 			return count;
 		}
