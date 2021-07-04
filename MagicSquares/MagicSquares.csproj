@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Collections.Numeric" Version="1.5.0" />
+    <PackageReference Include="Open.Collections.Numeric" Version="1.5.2" />
   </ItemGroup>
 
   <ItemGroup>
