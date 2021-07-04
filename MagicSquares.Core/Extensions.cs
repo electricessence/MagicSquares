@@ -105,7 +105,7 @@ namespace MagicSquares
 			=> checkDistinct
 				? source.AsParallel().Where(e =>
 				{
-					using var rows = e.RowsBuffered(size).Memoize();
+					using var rows = e.RowsBuffered(size).MemoizeUnsafe();
 					return e.RowsBuffered(size).IsMagicSquare(size, 0, true) && rows.AllDistinct();
 				})
 				: source.Where(e => e.RowsBuffered(size).IsMagicSquare(size, 0, true));

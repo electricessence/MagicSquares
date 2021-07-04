@@ -6,7 +6,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Open.Collections.Numeric" Version="1.5.4" />
+		<PackageReference Include="Open.Collections.Numeric" Version="1.5.5" />
 	</ItemGroup>
 
 	<ItemGroup>

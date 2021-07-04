@@ -90,7 +90,7 @@ namespace MagicSquares.Core
 			// Rearange each row (set) to see if we can get a Magic Square.
 
 			// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
-			using var c = rows.Select(r => r.Permutations()).Memoize();
+			using var c = rows.Select(r => r.Permutations()).MemoizeUnsafe();
 
 			// Next, group each possible configuration of these rows and look for a winner.
 			foreach (var magic in c.RowConfigurations().Where(a => a.IsMagicSquare(Size, sum, true)))

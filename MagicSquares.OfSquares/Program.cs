@@ -34,7 +34,7 @@ namespace MagicSquares.OfSquares
 				return;
 			}
 
-			var emitter = new ConsoleEmitter(square);
+			var emitter = new ConsoleEmitter(square, false);
 			var count = 0;
 
 			Console.WriteLine();
@@ -55,9 +55,10 @@ namespace MagicSquares.OfSquares
 					.GetUniqueAddendsBuffered(sum, size)
 					.Where(a => a.Take(size).All(v => squaresSet.Contains(v)))
 					.Select(a=>a.ToArray())
-					.ToArray();
+					.MemoizeUnsafe();
 
-				if (addends.Length < size) return;
+				// Check to see if there are enough results.
+				if (addends.Take(size).Count() == size) return;
 
 				emitter.Start(addends.Subsets(size), sum, summaryHeader: $"Candidate: {sum} = {string.Join(" + ", combination)}");
 				var c = Interlocked.Increment(ref count);
