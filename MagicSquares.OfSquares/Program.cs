@@ -51,14 +51,14 @@ namespace MagicSquares.OfSquares
 			{
 				var sum = combination.Sum();
 				if (!sumsTested.Add(sum)) return;
-				var addends = Open.Collections.Numeric.PossibleAddends
+				using var addends = Open.Collections.Numeric.PossibleAddends
 					.GetUniqueAddendsBuffered(sum, size)
 					.Where(a => a.Take(size).All(v => squaresSet.Contains(v)))
 					.Select(a=>a.ToArray())
-					.MemoizeUnsafe();
+					.MemoizeUnsafe(); // Reduces the initial overhead.
 
 				// Check to see if there are enough results.
-				if (addends.Take(size).Count() == size) return;
+				if (addends.Take(size).Count() < size) return;
 
 				emitter.Start(addends.Subsets(size), sum, summaryHeader: $"Candidate: {sum} = {string.Join(" + ", combination)}");
 				var c = Interlocked.Increment(ref count);
