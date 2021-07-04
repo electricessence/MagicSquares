@@ -40,14 +40,25 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares of squares...", size, len);
 
+			
+			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
+			var squaresSet = squares.ToImmutableHashSet();
 			var sw = Stopwatch.StartNew();
 			Parallel.ForEach(
-				Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray().Subsets(len),
-				new ParallelOptions { MaxDegreeOfParallelism = 2 },
+				squares.Subsets(size),
 				combination =>
 			{
-				using var subsets = combination.Subsets(size).Memoize();
-				emitter.Start(subsets, summaryHeader: $"Candidate: {string.Join(' ', combination)}");
+				var sum = combination.Sum();
+				var sums = new Open.Collections.Numeric.PossibleAddends();
+				var addends = sums
+					.UniqueAddendsFor(sum, size)
+					.Where(a => a.All(v => squaresSet.Contains(v)))
+					.ToArray();
+				sums.Dispose();
+
+				if (addends.Length < size) return;
+
+				emitter.Start(addends.Subsets(size), sum, summaryHeader: $"Candidate: {sum} = {string.Join(" + ", combination)}");
 				var c = Interlocked.Increment(ref count);
 				if (c % 100 == 0)
 				{

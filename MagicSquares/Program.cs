@@ -32,7 +32,7 @@ namespace MagicSquares
 			// Once a known minimum is established, we know there are more above that sum.
 			// For example 4x4 will be rows that add up to 34.
 			var firstSum = defaultSquare.Row(0).Sum();
-			var sums = new PossibleAddends();
+			using var sums = new PossibleAddends();
 			var len = square.Length;
 
 			// Get all possible value combinations.
