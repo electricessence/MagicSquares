@@ -49,7 +49,7 @@ namespace MagicSquares.Core
 		public int TestDistinctSet(IReadOnlyList<int> distinctSet)
 		{
 			if (distinctSet is null) throw new ArgumentNullException(nameof(distinctSet));
-			if (distinctSet.Count != Square.Length)	throw new ArgumentException($"Invalid set size.  Expected: {distinctSet.Count}  Actual: {Square.Length}", nameof(distinctSet));
+			if (distinctSet.Count != Square.Length) throw new ArgumentException($"Invalid set size.  Expected: {distinctSet.Count}  Actual: {Square.Length}", nameof(distinctSet));
 
 			using var subsets = distinctSet.Subsets(Size).MemoizeUnsafe();
 			var rowSets = subsets.Subsets(Size);
@@ -69,7 +69,8 @@ namespace MagicSquares.Core
 			if (set is null) throw new ArgumentNullException(nameof(set));
 			var plausible = 0;
 			var sync = new object();
-			Parallel.ForEach(set.Subsets(Square.Length), subset=> {
+			Parallel.ForEach(set.Subsets(Square.Length), subset =>
+			{
 				var count = TestDistinctSet(subset);
 				lock (sync) plausible += count;
 			});
@@ -92,7 +93,7 @@ namespace MagicSquares.Core
 
 			var plausible = 0;
 			var sync = new object();
-			Parallel.ForEach(subsets.GroupBy(s => s.Sum()), group=>
+			Parallel.ForEach(subsets.GroupBy(s => s.Sum()), group =>
 			{
 				var sum = group.Key;
 				using var rowSets = group.MemoizeUnsafe();
@@ -110,6 +111,7 @@ namespace MagicSquares.Core
 			var plausible = 0;
 			Parallel.ForEach(rowSets.Subsets(Size), rowSet =>
 			{
+				Debug.Assert(rowSet.Length == Size);
 				if (!rowSet.SelectMany(e => e.Take(Size)).AllDistinct()) return;
 				Interlocked.Increment(ref plausible);
 				using var r = rowSet.Select(e => e.Take(Size).ToArray()).MemoizeUnsafe();
@@ -162,10 +164,6 @@ namespace MagicSquares.Core
 		public int TestPlausibleRowCombination(IReadOnlyList<IReadOnlyList<int>> rows, int sum)
 		{
 			if (sum == 0) throw new ArgumentException("Value of zero provided.", nameof(sum));
-#if DEBUG
-			Debug.Assert(rows.Count == Size);
-			Debug.Assert(rows.All(r => r.Count == Size));
-#endif
 
 			Interlocked.Increment(ref _plausable);
 

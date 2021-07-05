@@ -42,7 +42,7 @@ namespace MagicSquares.OfSquares
 
 			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
 			var sw = Stopwatch.StartNew();
-			var plausible = tester.TestSetFromDistinctSubsets(squares);
+			var plausible = tester.TestSumCombinationSubsets(squares);
 			sw.Stop();
 			Console.WriteLine();
 			Console.WriteLine("Plausible tested: {0}", plausible);
