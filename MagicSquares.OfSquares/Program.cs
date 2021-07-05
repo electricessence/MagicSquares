@@ -34,7 +34,7 @@ namespace MagicSquares.OfSquares
 				return;
 			}
 
-			var emitter = new ConsoleEmitter(square, false);
+			var emitter = new ConsoleEmitter(square);
 			var count = 0;
 
 			Console.WriteLine();
@@ -55,7 +55,7 @@ namespace MagicSquares.OfSquares
 					.GetUniqueAddendsBuffered(sum, size)
 					.Where(a => a.Take(size).All(v => squaresSet.Contains(v)))
 					.Select(a=>a.ToArray())
-					.MemoizeUnsafe(); // Reduces the initial overhead.
+					.Memoize(); // Reduces the initial overhead.
 
 				// Check to see if there are enough results.
 				if (addends.Take(size).Count() < size) return;
