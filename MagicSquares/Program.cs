@@ -22,7 +22,8 @@ namespace MagicSquares
 			Console.WriteLine();
 			Console.WriteLine("First possible square (starting with 1):");
 			var square = new Square(size);
-			var emmitter = new ConsoleEmitter(square);
+			var tester = new Tester(square);
+			var emitter = new ConsoleEmitter(tester);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
 			square.GetPermutation(defaultSquare).Primary.Matrix.OutputToConsole();
 			Console.WriteLine();
@@ -60,7 +61,7 @@ namespace MagicSquares
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares with a sum of {2}...", size, len, firstSum);
 
-			emmitter.Start(s);
+			tester.TestSumCombinationSubsets(s, firstSum);
 		}
 
 	}
