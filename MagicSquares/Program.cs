@@ -3,6 +3,7 @@ using Open.Collections;
 using Open.Collections.Numeric;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MagicSquares
@@ -25,7 +26,7 @@ namespace MagicSquares
 			var tester = new Tester(square);
 			var emitter = new ConsoleEmitter(tester);
 			var defaultSquare = MagicSquare.CreateFromFirst(size, 1);
-			square.GetPermutation(defaultSquare).Primary.Matrix.OutputToConsole();
+			square.GetPermutation(defaultSquare).Orientations.Primary.Matrix.OutputToConsole();
 			Console.WriteLine();
 
 			// REDUCING THE SEARCH SPACE IS THE KEY.
@@ -61,7 +62,15 @@ namespace MagicSquares
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares with a sum of {2}...", size, len, firstSum);
 
+			var sw = Stopwatch.StartNew();
 			tester.TestSumCombinationSubsets(s, firstSum);
+			sw.Stop();
+
+			Console.WriteLine();
+			Console.WriteLine("Unique Magic Squares: {0}", tester.TrueCount);
+			Console.WriteLine("Total Families: {0}", tester.FamilyCount);
+			Console.WriteLine("Plausible Reviewed: {0}", tester.PlausibleCount);
+			Console.WriteLine("Elasped Milliseconds: {0}", sw.Elapsed.TotalMilliseconds);
 		}
 
 	}

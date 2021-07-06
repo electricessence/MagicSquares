@@ -137,7 +137,7 @@ namespace MagicSquares.Core
 			}
 
 			var square = SquareMatrix<int>.Create(grid, size);
-			Debug.Assert(square.IsPerfectMagicSquare());
+			Debug.Assert(square.MagicSquareQuality()==MagicSquareQuality.True);
 			return square;
 		}
 	}

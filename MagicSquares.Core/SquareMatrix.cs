@@ -126,10 +126,10 @@ namespace MagicSquares.Core
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public int CompareToVector(ImmutableArray<T> other)
+		public int CompareToVector(IReadOnlyList<T> other)
 		{
 			var len = Vector.Length;
-			if (len != other.Length) throw new ArgumentException("Comparison is incompatible. Lengths are different.");
+			if (len != other.Count) throw new ArgumentException("Comparison is incompatible. Lengths are different.");
 			for (var i = 0; i < len; ++i)
 			{
 				var a = Vector[i];
@@ -327,40 +327,7 @@ namespace MagicSquares.Core
 			}
 		}
 
-		public static bool IsMagicSquare(this SquareMatrix<int> square, int sum = 0)
-		{
-			var pool = ArrayPool<int>.Shared;
-			var size = square.Size;
-			var columns = pool.Rent(size);
-			try
-			{
-				for (var y = 0; y < size; ++y)
-				{
-					var rowSum = 0;
-					for (var x = 0; x < size; ++x)
-					{
-						var cell = square[x, y];
-						rowSum += cell;
-						if (y == 0) columns[x] = cell;
-						else columns[x] += cell;
-					}
-
-					if (sum == 0) sum = rowSum;
-					else if (rowSum != sum) return false;
-				}
-
-				for (var i = 0; i < size; i++)
-					if (columns[i] != sum) return false;
-
-				return true;
-			}
-			finally
-			{
-				pool.Return(columns);
-			}
-		}
-
-		public static bool IsPerfectMagicSquare(this SquareMatrix<int> square, int sum = 0)
+		public static MagicSquareQuality MagicSquareQuality(this SquareMatrix<int> square, int sum = 0)
 		{
 			var pool = ArrayPool<int>.Shared;
 			var size = square.Size;
@@ -383,15 +350,15 @@ namespace MagicSquares.Core
 					}
 
 					if (sum == 0) sum = rowSum;
-					else if (rowSum != sum) return false;
+					else if (rowSum != sum) return Core.MagicSquareQuality.Failed;
 				}
 
-				if (left != sum || right != sum) return false;
-
 				for (var i = 0; i < size; i++)
-					if (columns[i] != sum) return false;
+					if (columns[i] != sum) return Core.MagicSquareQuality.Failed;
 
-				return true;
+				if (left != sum || right != sum) return Core.MagicSquareQuality.Semi;
+
+				return Core.MagicSquareQuality.True;
 			}
 			finally
 			{

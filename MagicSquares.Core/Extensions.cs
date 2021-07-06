@@ -33,7 +33,7 @@ namespace MagicSquares
 			return true;
 		});
 
-		static bool IsMagicSquareInternal<T>(T square, ref int size, ref int sum, Func<int[], int> validator)
+		static bool IsSemiMagicSquareInternal<T>(T square, ref int size, ref int sum, Func<int[], int> validator)
 		{
 			if (square is null) throw new ArgumentNullException(nameof(square));
 
@@ -53,8 +53,35 @@ namespace MagicSquares
 			}
 		}
 
-		public static bool IsMagicSquare(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
-		=> IsMagicSquareInternal(square, ref size, ref sum, columns =>
+
+		public static bool IsSumDiagnals(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
+		{
+			Debug.Assert(sum != 0);
+			var right = 0;
+			var left = 0;
+			int rowCount = 0;
+			foreach (var row in square)
+			{
+				if (ignoreOversized ? row.Count < size : row.Count != size) break;
+				var i = 0;
+				foreach (var cell in row)
+				{
+					if (ignoreOversized && i == size)
+						break;
+
+					if (rowCount == i) right += cell;
+					if (size - i - 1 == rowCount) left += cell;
+					++i;
+				}
+				++rowCount;
+
+				if (ignoreOversized && rowCount == size) break;
+			}
+			return left==sum && right==sum;
+		}
+
+		public static bool IsSemiMagicSquare(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
+		=> IsSemiMagicSquareInternal(square, ref size, ref sum, columns =>
 		{
 			int rowCount = 0;
 			foreach (var row in square)
@@ -83,17 +110,17 @@ namespace MagicSquares
 			return rowCount;
 		});
 
-		public static bool IsMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, int sum, bool ignoreOversized = false)
-		=> IsMagicSquare(square, square?.Count ?? 0, sum, ignoreOversized);
+		public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, int sum, bool ignoreOversized = false)
+		=> IsSemiMagicSquare(square, square?.Count ?? 0, sum, ignoreOversized);
 
-		public static bool IsMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, bool ignoreOversized = false)
-		=> IsMagicSquare(square, square?.Count ?? 0, 0, ignoreOversized);
+		public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, bool ignoreOversized = false)
+		=> IsSemiMagicSquare(square, square?.Count ?? 0, 0, ignoreOversized);
 
-		public static bool IsMagicSquare(this int[,] square)
+		public static bool IsSemiMagicSquare(this int[,] square)
 		{
 			var sizeX = square.GetLength(0);
 			var sizeY = square.GetLength(1);
-			return IsMagicSquare(
+			return IsSemiMagicSquare(
 				square.Rows().Select(c => c.ToArray()).ToArray(),
 				sizeX, 0, false);
 		}
@@ -106,9 +133,9 @@ namespace MagicSquares
 				? source.AsParallel().Where(e =>
 				{
 					using var rows = e.RowsBuffered(size).MemoizeUnsafe();
-					return e.RowsBuffered(size).IsMagicSquare(size, 0, true) && rows.AllDistinct();
+					return e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true) && rows.AllDistinct();
 				})
-				: source.Where(e => e.RowsBuffered(size).IsMagicSquare(size, 0, true));
+				: source.Where(e => e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true));
 
 		public static IEnumerable<IEnumerable<T>> Rows<T>(this T[,] source)
 		{

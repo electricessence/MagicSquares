@@ -11,41 +11,36 @@ using System.Threading.Tasks;
 
 namespace MagicSquares.Core
 {
-	public class Tester : DisposableBase, IObservable<(int id, SquareMatrix<int> square, bool perfect)>
+	public class Tester : DisposableBase, IObservable<(int familyId, SquareMatrix<int> square, bool isTrue)>
 	{
 		public Tester(Square square)
 		{
 			Size = square.Size;
 			Square = square;
-			_distinctSetSummary = new();
-			DistinctSetSummary = _distinctSetSummary.AsObservable();
 		}
 
 		int _plausable;
-		int _found;
-
-		readonly Subject<(IReadOnlyList<int>, int, TimeSpan)> _distinctSetSummary;
-		public IObservable<(IReadOnlyList<int>, int, TimeSpan)> DistinctSetSummary { get; }
+		int _families;
+		int _trueMagic;
 
 		readonly ConcurrentHashSet<string> _verification = new();
-		readonly ConcurrentHashSet<string> _semimagic = new();
 
 		readonly Subject<(int, SquareMatrix<int>, bool)> _subject = new();
 
 		protected override void OnDispose()
 		{
 			_subject.Dispose();
-			_distinctSetSummary.Dispose();
 			_verification.Dispose();
 		}
 
 		public int Size { get; }
 		public Square Square { get; }
 
-		public int Plausible => _plausable;
-		public int Found => _found;
+		public int PlausibleCount => _plausable;
+		public int FamilyCount => _families;
+		public int TrueCount => _trueMagic;
 
-		public IDisposable Subscribe(IObserver<(int id, SquareMatrix<int> square, bool perfect)> observer)
+		public IDisposable Subscribe(IObserver<(int familyId, SquareMatrix<int> square, bool isTrue)> observer)
 			=> _subject.Subscribe(observer);
 
 		public int TestDistinctSet(IReadOnlyList<int> distinctSet)
@@ -176,30 +171,33 @@ namespace MagicSquares.Core
 			using var c = rows.Select(r => r.Permutations()).MemoizeUnsafe();
 			int count = 0;
 			// Next, group each possible configuration of these rows and look for a winner.
-			foreach (var magic in c.RowConfigurations().Where(a => a.IsMagicSquare(Size, sum, true)))
+			foreach (var magic in c.RowConfigurations().Where(a => a.IsSemiMagicSquare(Size, sum, true)))
 			{
-				// Ok!  Found one.  Let's expand the set the possible row configurations.
-				foreach (var rowPermutation in magic.Take(Size).Permutations())
+				// Ok! We found a semi-magic square...
+				// Semi-magic squares have numerous configurations (rows and columns can rearrange) and one of them might be a true magic square. 
+				// We shouldn't report semi-magic squares that are simply reconfigured. *
+				var permutations = Square.GetPermutation(magic, ignoreOversize: true).AllPermutations;
+				var primarySemiMagic = permutations.Primary;
+
+				// Don't reprocess families of squares. *
+				if (!_verification.Add(primarySemiMagic.Hash)) continue;
+
+				var familyId = Interlocked.Increment(ref _families);
+
+				// Look for any true (perfect) magic squares.
+				var trueCount = 0;
+				foreach (var p in permutations
+					.Where(p => p.MagicSquareQuality == MagicSquareQuality.True)
+					.GroupBy(p=>p.Orientations.Primary))
 				{
-					// Now reduce the set further by eliminating any flips or rotations.
-					var p = Square.GetPermutation(rowPermutation, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
-					if (!_verification.Add(p.Hash)) continue;
-					var matrix = p.Matrix;
-					var perfect = matrix.IsPerfectMagicSquare();
+					++trueCount;
+					Interlocked.Increment(ref _trueMagic);
+					_subject.OnNext((familyId, p.Key.Matrix, true));
+				}
 
-					if (!perfect)
-					{
-						// Semi-magic squares can have their columns and rows reordered and still work.
-						// No need to report variations on them.
-						var hashR = string.Join(' ', p.Matrix.Rows().Select(c => string.Join(' ', c)).OrderBy(r => r));
-						if (!_semimagic.Add(hashR)) continue;
-						var hashC = string.Join(' ', p.Matrix.Columns().Select(c => string.Join(' ', c)).OrderBy(r => r));
-						if (!_semimagic.Add(hashC)) continue;
-					}
-
-					count++;
-					var f = Interlocked.Increment(ref _found);
-					_subject.OnNext((f, matrix, perfect));
+				if (trueCount == 0)
+				{
+					_subject.OnNext((familyId, primarySemiMagic.Matrix, false));
 				}
 			}
 			return count;

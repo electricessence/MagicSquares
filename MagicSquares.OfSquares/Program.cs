@@ -41,8 +41,11 @@ namespace MagicSquares.OfSquares
 			var sw = Stopwatch.StartNew();
 			var plausible = tester.TestSumCombinationSubsets(squares);
 			sw.Stop();
+
 			Console.WriteLine();
-			Console.WriteLine("Plausible tested: {0}", plausible);
+			Console.WriteLine("Unique Magic Squares: {0}", tester.TrueCount);
+			Console.WriteLine("Total Families: {0}", tester.FamilyCount);
+			Console.WriteLine("Plausible Reviewed: {0}", tester.PlausibleCount);
 			Console.WriteLine("Elasped Milliseconds: {0}", sw.Elapsed.TotalMilliseconds);
 		}
 	}

@@ -9,7 +9,7 @@ namespace MagicSquaresTests
 	public class MagicSquareTests
 	{
 		[TestMethod]
-		public void IsMagicSquareTest()
+		public void IsSemiMagicSquareTest()
 		{
 			{
 				int[][] square = new int[][] {
@@ -18,11 +18,9 @@ namespace MagicSquaresTests
 					new int[] { 2, 9, 4 }
 				};
 
-				Assert.IsTrue(square.IsMagicSquare());
-
-				var sq = SquareMatrix<int>.Create(square, 3);
-				Assert.IsTrue(sq.IsMagicSquare());
-				Assert.IsTrue(sq.IsPerfectMagicSquare());
+				Assert.IsTrue(square.IsSemiMagicSquare());
+				Assert.IsTrue(MagicSquareQuality.True == SquareMatrix<int>.Create(square, 3).MagicSquareQuality());
+				Assert.IsTrue(square.IsSumDiagnals(3, 15));
 			}
 
 			{
@@ -33,7 +31,7 @@ namespace MagicSquaresTests
 					new int[] { 16, 2, 3, 13 }
 				};
 
-				Assert.IsTrue(square.IsMagicSquare());
+				Assert.IsTrue(square.IsSemiMagicSquare());
 			}
 
 			{
@@ -44,7 +42,7 @@ namespace MagicSquaresTests
 					new int[] { 16, 2, 3, 13 }
 				};
 
-				Assert.IsTrue(square.IsMagicSquare(true));
+				Assert.IsTrue(square.IsSemiMagicSquare(true));
 			}
 
 			{
@@ -57,7 +55,7 @@ namespace MagicSquaresTests
 					null
 				};
 
-				Assert.IsTrue(square.IsMagicSquare(4, 34, true));
+				Assert.IsTrue(square.IsSemiMagicSquare(4, 34, true));
 			}
 		}
 
@@ -71,7 +69,7 @@ namespace MagicSquaresTests
 					new int[] { 7, 3, 6 }
 				};
 
-				Assert.IsFalse(square.IsMagicSquare());
+				Assert.IsFalse(square.IsSemiMagicSquare());
 			}
 
 			{
@@ -81,7 +79,7 @@ namespace MagicSquaresTests
 					new int[] { 7, 4, 5 }
 				};
 
-				Assert.IsFalse(square.IsMagicSquare());
+				Assert.IsFalse(square.IsSemiMagicSquare());
 			}
 		}
 
