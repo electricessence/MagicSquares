@@ -53,7 +53,7 @@ namespace MagicSquares.OfSquares
 			});
 
 			Console.WriteLine();
-			Console.WriteLine("Searching for {0} x {0} Magic Squares of squares...", size, len);
+			Console.WriteLine("Searching for {0} x {0} Magic Squares of squares...", size);
 
 			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
 			var sw = Stopwatch.StartNew();
