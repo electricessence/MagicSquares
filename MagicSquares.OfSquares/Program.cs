@@ -34,15 +34,15 @@ namespace MagicSquares.OfSquares
 			using var tester = new Tester(square);
 			using var _ = tester.Subscribe(found =>
 			{
-				var (f, magicSquare, perfect) = found;
+				var (familyId, square, perfect) = found;
 				lock (tester)
 				{
 					Console.WriteLine();
-					var vector = magicSquare.Vector.Select(i => Math.Sqrt(i)).OrderBy(i=>i);
+					var vector = square.Vector.Select(i => Math.Sqrt(i)).OrderBy(i=>i);
 					if (perfect) Console.WriteLine("TRUE MAGIC SQUARE OF SQUARES!");
-					Console.WriteLine("{0}: [{1}]", f, string.Join(' ', vector));
-					var rows = magicSquare.ToDisplayRowStrings().ToArray();
-					var rowsSq = magicSquare.Transform(i => Math.Sqrt(i) + "²").ToDisplayRowStrings().ToArray();
+					Console.WriteLine("{0}: [{1}]", familyId, string.Join(' ', vector));
+					var rows = square.ToDisplayRowStrings().ToArray();
+					var rowsSq = square.Transform(i => Math.Sqrt(i) + "²").ToDisplayRowStrings().ToArray();
 					for (var i = 0; i < rows.Length; i++)
 					{
 						Console.Write(rowsSq[i]);
