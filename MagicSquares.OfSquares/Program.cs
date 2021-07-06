@@ -32,7 +32,25 @@ namespace MagicSquares.OfSquares
 			}
 
 			using var tester = new Tester(square);
-			using var emitter = new ConsoleEmitter(tester);
+			using var _ = tester.Subscribe(found =>
+			{
+				var (f, magicSquare, perfect) = found;
+				lock (tester)
+				{
+					Console.WriteLine();
+					var vector = magicSquare.Vector.Select(i => Math.Sqrt(i)).OrderBy(i=>i);
+					if (perfect) Console.WriteLine("TRUE MAGIC SQUARE OF SQUARES!");
+					Console.WriteLine("{0}: [{1}]", f, string.Join(' ', vector));
+					var rows = magicSquare.ToDisplayRowStrings().ToArray();
+					var rowsSq = magicSquare.Transform(i => Math.Sqrt(i) + "²").ToDisplayRowStrings().ToArray();
+					for (var i = 0; i < rows.Length; i++)
+					{
+						Console.Write(rowsSq[i]);
+						Console.Write(" | ");
+						Console.WriteLine(rows[i]);
+					}
+				}
+			});
 
 			Console.WriteLine();
 			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares of squares...", size, len);

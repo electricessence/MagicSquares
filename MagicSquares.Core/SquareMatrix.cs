@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MagicSquares.Core
@@ -23,6 +24,10 @@ namespace MagicSquares.Core
 		{
 
 		}
+
+		public SquareMatrix<TResult> Transform<TResult>(Func<T, TResult> transform)
+			where TResult : IComparable<TResult>
+			=> new(Vector.Select(transform).ToImmutableArray(), Size);
 
 		public static SquareMatrix<T> Create(IReadOnlyCollection<T> vector, int size)
 		{
@@ -238,7 +243,8 @@ namespace MagicSquares.Core
 			}
 		}
 
-		public static IEnumerable<string> ToDisplayRowStrings(this SquareMatrix<int> square)
+		public static IEnumerable<string> ToDisplayRowStrings<T>(this SquareMatrix<T> square)
+			where T : IComparable<T>
 		{
 			var pool = ListPool<string[]>.Shared;
 			var table = pool.Take();
@@ -249,8 +255,9 @@ namespace MagicSquares.Core
 				var row = new string[size];
 				for (var x = 0; x < size; ++x)
 				{
-					var v = square[x, y].ToString();
-					colWidth[x] = Math.Max(colWidth[x], v.Length);
+					var v = square[x, y]?.ToString();
+					Debug.Assert(v != null);
+					colWidth[x] = Math.Max(colWidth[x], v!.Length);
 					row[x] = v.ToString();
 				}
 
@@ -319,9 +326,18 @@ namespace MagicSquares.Core
 			yield return string.Join(' ', colSumRow);
 		}
 
-		public static void OutputToConsole(this SquareMatrix<int> square, bool showTotals = false)
+		public static void OutputToConsole<T>(this SquareMatrix<T> square)
+			where T : IComparable<T>
 		{
-			foreach (var row in showTotals ? square.ToDisplayRowStringsWithTotals() : square.ToDisplayRowStrings())
+			foreach (var row in square.ToDisplayRowStrings())
+			{
+				Console.WriteLine(row);
+			}
+		}
+
+		public static void OutputToConsoleWithTotals(this SquareMatrix<int> square)
+		{
+			foreach (var row in square.ToDisplayRowStringsWithTotals())
 			{
 				Console.WriteLine(row);
 			}
