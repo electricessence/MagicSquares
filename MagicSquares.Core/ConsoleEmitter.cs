@@ -21,10 +21,10 @@ namespace MagicSquares.Core
 			_distinctSummarySubscription.Dispose();
 		}
 
-		void OnMagicSquareFound((int, SquareMatrix<int>) found)
+		void OnMagicSquareFound((int id, SquareMatrix<int> square, bool perfect) found)
 		{
-			var (f, magicSquare) = found;
-			var comment = magicSquare.IsPerfectMagicSquare() ? "(perfect)" : string.Empty; lock (this)
+			var (f, magicSquare, perfect) = found;
+			var comment = perfect ? "(perfect)" : string.Empty; lock (this)
 			{
 				Console.WriteLine();
 				Console.WriteLine("{0}: {1}", f, comment);

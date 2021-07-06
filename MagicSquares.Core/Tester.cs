@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MagicSquares.Core
 {
-	public class Tester : DisposableBase, IObservable<(int, SquareMatrix<int>)>
+	public class Tester : DisposableBase, IObservable<(int id, SquareMatrix<int> square, bool perfect)>
 	{
 		public Tester(Square square)
 		{
@@ -24,11 +24,13 @@ namespace MagicSquares.Core
 		int _plausable;
 		int _found;
 
-		Subject<(IReadOnlyList<int>, int, TimeSpan)> _distinctSetSummary;
+		readonly Subject<(IReadOnlyList<int>, int, TimeSpan)> _distinctSetSummary;
 		public IObservable<(IReadOnlyList<int>, int, TimeSpan)> DistinctSetSummary { get; }
 
 		readonly ConcurrentHashSet<string> _verification = new();
-		readonly Subject<(int, SquareMatrix<int>)> _subject = new();
+		readonly ConcurrentHashSet<string> _semimagic = new();
+
+		readonly Subject<(int, SquareMatrix<int>, bool)> _subject = new();
 
 		protected override void OnDispose()
 		{
@@ -43,7 +45,7 @@ namespace MagicSquares.Core
 		public int Plausible => _plausable;
 		public int Found => _found;
 
-		public IDisposable Subscribe(IObserver<(int, SquareMatrix<int>)> observer)
+		public IDisposable Subscribe(IObserver<(int id, SquareMatrix<int> square, bool perfect)> observer)
 			=> _subject.Subscribe(observer);
 
 		public int TestDistinctSet(IReadOnlyList<int> distinctSet)
@@ -182,9 +184,22 @@ namespace MagicSquares.Core
 					// Now reduce the set further by eliminating any flips or rotations.
 					var p = Square.GetPermutation(rowPermutation, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
 					if (!_verification.Add(p.Hash)) continue;
+					var matrix = p.Matrix;
+					var perfect = matrix.IsPerfectMagicSquare();
+
+					if (!perfect)
+					{
+						// Semi-magic squares can have their columns and rows reordered and still work.
+						// No need to report variations on them.
+						var hashR = string.Join(' ', p.Matrix.Rows().Select(c => string.Join(' ', c)).OrderBy(r => r));
+						if (!_semimagic.Add(hashR)) continue;
+						var hashC = string.Join(' ', p.Matrix.Columns().Select(c => string.Join(' ', c)).OrderBy(r => r));
+						if (!_semimagic.Add(hashC)) continue;
+					}
+
 					count++;
 					var f = Interlocked.Increment(ref _found);
-					_subject.OnNext((f, p.Matrix));
+					_subject.OnNext((f, matrix, perfect));
 				}
 			}
 			return count;
