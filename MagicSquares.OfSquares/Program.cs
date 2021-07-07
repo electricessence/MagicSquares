@@ -67,7 +67,7 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine("Search space: {0:n0}", searchSpace);
 
 			var sw = Stopwatch.StartNew();
-			var plausible = tester.TestSumCombinationSubsets(squares);
+			tester.TestSumCombinationSubsets(squares);
 			sw.Stop();
 
 			Console.WriteLine();

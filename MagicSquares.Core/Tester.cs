@@ -43,93 +43,76 @@ namespace MagicSquares.Core
 		public IDisposable Subscribe(IObserver<(int familyId, SquareMatrix<int> square, bool isTrue)> observer)
 			=> _subject.Subscribe(observer);
 
-		public int TestDistinctSet(IReadOnlyList<int> distinctSet)
+		public void TestDistinctSet(IReadOnlyList<int> distinctSet)
 		{
 			if (distinctSet is null) throw new ArgumentNullException(nameof(distinctSet));
 			if (distinctSet.Count != Square.Length) throw new ArgumentException($"Invalid set size.  Expected: {distinctSet.Count}  Actual: {Square.Length}", nameof(distinctSet));
 
 			using var subsets = distinctSet.Subsets(Size).MemoizeUnsafe();
 			var rowSets = subsets.Subsets(Size);
-			var plausible = 0;
 			Parallel.ForEach(rowSets, rowSet =>
 			{
 				if (!TryGetUniformRowSum(rowSet, out int sum)) return;
 				if (!rowSet.SelectMany(e => e).AllDistinct()) return;
-				Interlocked.Increment(ref plausible);
-				var count = TestPlausibleRowCombination(rowSet, sum);
+				TestPlausibleRowCombination(rowSet, sum);
 			});
-			return plausible;
 		}
 
-		public int TestSetFromDistinctSubsets(IReadOnlyList<int> set)
+		public void TestSetFromDistinctSubsets(IReadOnlyList<int> set)
 		{
 			if (set is null) throw new ArgumentNullException(nameof(set));
-			var plausible = 0;
-			var sync = new object();
-			Parallel.ForEach(set.Subsets(Square.Length), subset =>
-			{
-				var count = TestDistinctSet(subset);
-				lock (sync) plausible += count;
-			});
-			return plausible;
+			Parallel.ForEach(set.Subsets(Square.Length), TestDistinctSet);
 		}
 
-		public int TestSetFromDistinctSubsets(IEnumerable<int> set)
+		public void TestSetFromDistinctSubsets(IEnumerable<int> set)
 		{
-			if (set is IReadOnlyList<int> s) return TestSumCombinationSubsets(s);
+			if (set is IReadOnlyList<int> s) TestSumCombinationSubsets(s);
 			else
 			{
 				using var s1 = set.MemoizeUnsafe();
-				return TestSumCombinationSubsets(s1);
+				TestSumCombinationSubsets(s1);
 			}
 		}
 
-		public int TestSumCombinationSubsets(IReadOnlyList<IReadOnlyList<int>> subsets)
+		public void TestSumCombinationSubsets(IReadOnlyList<IReadOnlyList<int>> subsets)
 		{
 			if (subsets is null) throw new ArgumentNullException(nameof(subsets));
 
-			var plausible = 0;
-			var sync = new object();
 			Parallel.ForEach(subsets.GroupBy(s => s.Sum()), group =>
 			{
 				var sum = group.Key;
 				using var rowSets = group.MemoizeUnsafe();
 				if (rowSets.Take(Size).Count() < Size) return;
-				var count = TestSumCombinationSubsets(rowSets, sum);
-				lock (sync) plausible += count;
+				TestSumCombinationSubsets(rowSets, sum);
 			});
-			return plausible;
 		}
 
-		public int TestSumCombinationSubsets(IReadOnlyList<IReadOnlyList<int>> rowSets, int sum)
+		public void TestSumCombinationSubsets(IReadOnlyList<IReadOnlyList<int>> rowSets, int sum)
 		{
 			if (rowSets is null) throw new ArgumentNullException(nameof(rowSets));
 
-			var plausible = 0;
 			Parallel.ForEach(rowSets.Subsets(Size), rowSet =>
 			{
 				Debug.Assert(rowSet.Length == Size);
 				if (!rowSet.SelectMany(e => e.Take(Size)).AllDistinct()) return;
-				Interlocked.Increment(ref plausible);
 				using var r = rowSet.Select(e => e.Take(Size).ToArray()).MemoizeUnsafe();
-				var count = TestPlausibleRowCombination(r, sum);
+				TestPlausibleRowCombination(r, sum);
 			});
-			return plausible;
 		}
 
-		public int TestSumCombinationSubsets(IReadOnlyList<int> set)
+		public void TestSumCombinationSubsets(IReadOnlyList<int> set)
 		{
 			using var subsets = set.Subsets(Size).MemoizeUnsafe();
-			return TestSumCombinationSubsets(subsets);
+			TestSumCombinationSubsets(subsets);
 		}
 
-		public int TestSumCombinationSubsets(IEnumerable<int> set)
+		public void TestSumCombinationSubsets(IEnumerable<int> set)
 		{
-			if (set is IReadOnlyList<int> s) return TestSumCombinationSubsets(s);
+			if (set is IReadOnlyList<int> s) TestSumCombinationSubsets(s);
 			else
 			{
 				using var s1 = set.MemoizeUnsafe();
-				return TestSumCombinationSubsets(s1);
+				TestSumCombinationSubsets(s1);
 			}
 		}
 
@@ -158,7 +141,7 @@ namespace MagicSquares.Core
 			return true;
 		}
 
-		public int TestPlausibleRowCombination(IReadOnlyList<IReadOnlyList<int>> rows, int sum)
+		public void TestPlausibleRowCombination(IReadOnlyList<IReadOnlyList<int>> rows, int sum)
 		{
 			if (sum == 0) throw new ArgumentException("Value of zero provided.", nameof(sum));
 
@@ -169,7 +152,6 @@ namespace MagicSquares.Core
 
 			// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
 			using var c = rows.Select(r => r.Permutations()).MemoizeUnsafe();
-			int count = 0;
 			// Next, group each possible configuration of these rows and look for a winner.
 			foreach (var magic in c.RowConfigurations().Where(a => a.IsSemiMagicSquare(Size, sum, true)))
 			{
@@ -200,7 +182,6 @@ namespace MagicSquares.Core
 					_subject.OnNext((familyId, primarySemiMagic.Matrix, false));
 				}
 			}
-			return count;
 
 		}
 

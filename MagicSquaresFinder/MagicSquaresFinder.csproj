@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Threading" Version="1.6.2" />
+    <PackageReference Include="Open.Threading" Version="1.6.3" />
   </ItemGroup>
 
   <ItemGroup>
