@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MagicSquares.Core
@@ -23,6 +24,10 @@ namespace MagicSquares.Core
 		{
 
 		}
+
+		public SquareMatrix<TResult> Transform<TResult>(Func<T, TResult> transform)
+			where TResult : IComparable<TResult>
+			=> new(Vector.Select(transform).ToImmutableArray(), Size);
 
 		public static SquareMatrix<T> Create(IReadOnlyCollection<T> vector, int size)
 		{
@@ -126,10 +131,10 @@ namespace MagicSquares.Core
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public int CompareToVector(ImmutableArray<T> other)
+		public int CompareToVector(IReadOnlyList<T> other)
 		{
 			var len = Vector.Length;
-			if (len != other.Length) throw new ArgumentException("Comparison is incompatible. Lengths are different.");
+			if (len != other.Count) throw new ArgumentException("Comparison is incompatible. Lengths are different.");
 			for (var i = 0; i < len; ++i)
 			{
 				var a = Vector[i];
@@ -238,7 +243,8 @@ namespace MagicSquares.Core
 			}
 		}
 
-		public static IEnumerable<string> ToDisplayRowStrings(this SquareMatrix<int> square)
+		public static IEnumerable<string> ToDisplayRowStrings<T>(this SquareMatrix<T> square)
+			where T : IComparable<T>
 		{
 			var pool = ListPool<string[]>.Shared;
 			var table = pool.Take();
@@ -249,8 +255,9 @@ namespace MagicSquares.Core
 				var row = new string[size];
 				for (var x = 0; x < size; ++x)
 				{
-					var v = square[x, y].ToString();
-					colWidth[x] = Math.Max(colWidth[x], v.Length);
+					var v = square[x, y]?.ToString();
+					Debug.Assert(v != null);
+					colWidth[x] = Math.Max(colWidth[x], v!.Length);
 					row[x] = v.ToString();
 				}
 
@@ -319,48 +326,24 @@ namespace MagicSquares.Core
 			yield return string.Join(' ', colSumRow);
 		}
 
-		public static void OutputToConsole(this SquareMatrix<int> square, bool showTotals = false)
+		public static void OutputToConsole<T>(this SquareMatrix<T> square)
+			where T : IComparable<T>
 		{
-			foreach (var row in showTotals ? square.ToDisplayRowStringsWithTotals() : square.ToDisplayRowStrings())
+			foreach (var row in square.ToDisplayRowStrings())
 			{
 				Console.WriteLine(row);
 			}
 		}
 
-		public static bool IsMagicSquare(this SquareMatrix<int> square, int sum = 0)
+		public static void OutputToConsoleWithTotals(this SquareMatrix<int> square)
 		{
-			var pool = ArrayPool<int>.Shared;
-			var size = square.Size;
-			var columns = pool.Rent(size);
-			try
+			foreach (var row in square.ToDisplayRowStringsWithTotals())
 			{
-				for (var y = 0; y < size; ++y)
-				{
-					var rowSum = 0;
-					for (var x = 0; x < size; ++x)
-					{
-						var cell = square[x, y];
-						rowSum += cell;
-						if (y == 0) columns[x] = cell;
-						else columns[x] += cell;
-					}
-
-					if (sum == 0) sum = rowSum;
-					else if (rowSum != sum) return false;
-				}
-
-				for (var i = 0; i < size; i++)
-					if (columns[i] != sum) return false;
-
-				return true;
-			}
-			finally
-			{
-				pool.Return(columns);
+				Console.WriteLine(row);
 			}
 		}
 
-		public static bool IsPerfectMagicSquare(this SquareMatrix<int> square, int sum = 0)
+		public static MagicSquareQuality MagicSquareQuality(this SquareMatrix<int> square, int sum = 0)
 		{
 			var pool = ArrayPool<int>.Shared;
 			var size = square.Size;
@@ -383,15 +366,15 @@ namespace MagicSquares.Core
 					}
 
 					if (sum == 0) sum = rowSum;
-					else if (rowSum != sum) return false;
+					else if (rowSum != sum) return Core.MagicSquareQuality.Failed;
 				}
 
-				if (left != sum || right != sum) return false;
-
 				for (var i = 0; i < size; i++)
-					if (columns[i] != sum) return false;
+					if (columns[i] != sum) return Core.MagicSquareQuality.Failed;
 
-				return true;
+				if (left != sum || right != sum) return Core.MagicSquareQuality.Semi;
+
+				return Core.MagicSquareQuality.True;
 			}
 			finally
 			{

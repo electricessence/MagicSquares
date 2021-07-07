@@ -1,104 +1,40 @@
-﻿using Open.Collections;
+﻿using Open.Disposable;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MagicSquares.Core
 {
-	public class ConsoleEmitter
+	public class ConsoleEmitter : DisposableBase
 	{
-		public ConsoleEmitter(Square square, bool parallelProcessing = true)
+		public ConsoleEmitter(Tester tester, Func<int, string>? transform = null)
 		{
-			Size = square.Size;
-			Square = square;
-			ParallelProcessing = parallelProcessing;
+			if (tester is null) throw new ArgumentNullException(nameof(tester));
+			_magicSquareSubscription = tester.Subscribe(OnMagicSquareFound);
+			_tester = tester;
+			_transform = transform;
 		}
 
-		public int Size { get; }
-		public Square Square { get; }
-		public bool ParallelProcessing { get; }
+		readonly IDisposable _magicSquareSubscription;
+		private readonly Tester _tester;
+		private readonly Func<int, string>? _transform;
 
-		public int Start(IReadOnlyList<IReadOnlyList<int>> combinations, int sum = 0, string summaryHeader = null)
+		protected override void OnDispose()
 		{
-			var count = 0;
-			var sw = Stopwatch.StartNew();
-			var verification = new ConcurrentHashSet<string>();
-			var plausibleCount = 0;
-			// As long as diagnal values are not important, once a magic square is found, its rows or columns can be shuffled and all numbers will still add up.
-			// Then get all row (set) permutations.
-			// The order of the rows doesn't matter yet as long as they add up.
-			if (ParallelProcessing)
-				Parallel.ForEach(combinations.Subsets(Size), ProcessRows);
-			else
-				foreach (var rows in combinations.Subsets(Size)) ProcessRows(rows);
+			_magicSquareSubscription.Dispose();
+		}
 
-			void ProcessRows(IReadOnlyList<int>[] rows)
+		void OnMagicSquareFound((int id, SquareMatrix<int> square, bool perfect) found)
+		{
+			var (f, magicSquare, perfect) = found;
+			var comment = perfect ? "(perfect)" : string.Empty; lock (_tester)
 			{
-				// Check the sums first if need be.
-				var localSum = sum;
-				if (localSum == 0)
-				{
-					bool first = true;
-					foreach (var row in rows)
-					{
-						if (first)
-						{
-							localSum = row.Sum();
-							first = false;
-						}
-						else if (row.Sum() != localSum)
-						{
-							return;
-						}
-					}
-				}
-
-				Interlocked.Increment(ref plausibleCount);
-
-				if (!rows.SelectMany(e => e).AllDistinct()) return;
-				// Discovered a valid set!  We know the rows already add up.
-				// Rearange each row (set) to see if we can get a Magic Square.
-
-				// First provide a collection of row permutations.  Each row still adds up to the same, but just rearranged.
-				using var c = rows.Select(r => r.Permutations()).Memoize();
-
-				// Next, group each possible configuration of these rows and look for a winner.
-				foreach (var magic in c.RowConfigurations().Where(a => a.IsMagicSquare(Size, localSum, true)))
-				{
-					// Ok!  Found one.  Let's expand the set the possible row configurations.
-					foreach (var rowPermutation in magic.Take(Size).Permutations())
-					{
-						// Now reduce the set further by eliminating any flips or rotations.
-						var p = Square.GetPermutation(rowPermutation, ignoreOversize: true).Primary; // Get the normalized version of the matrix.
-						if (!verification.Add(p.Hash)) continue;
-
-						var comment = p.Matrix.IsPerfectMagicSquare() ? "(perfect)" : string.Empty;
-						lock (Square)
-						{
-							Console.WriteLine();
-							Console.WriteLine("{0}: {1}", ++count, comment);
-							p.Matrix.OutputToConsole();
-						}
-					}
-				}
+				Console.WriteLine();
+				Console.WriteLine("{0}: {1}", f, comment);
+				if (_transform == null)
+					magicSquare.OutputToConsole();
+				else
+					magicSquare.Transform(_transform).OutputToConsole();
 			}
-
-			if (plausibleCount != 0)
-			{
-				lock (Square)
-				{
-					Console.WriteLine();
-					if (summaryHeader != null) Console.WriteLine(summaryHeader);
-					Console.WriteLine("Total groupings found: {0}", count);
-					Console.Write("{0} milliseconds", sw.Elapsed.TotalMilliseconds);
-					Console.WriteLine();
-				}
-			}
-
-			return count;
 		}
 	}
 }

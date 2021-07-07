@@ -1,11 +1,9 @@
 ﻿using MagicSquares.Core;
-using Open.Collections;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Numerics;
 
 namespace MagicSquares.OfSquares
 {
@@ -34,30 +32,59 @@ namespace MagicSquares.OfSquares
 				return;
 			}
 
-			var emitter = new ConsoleEmitter(square);
-			var count = 0;
-
-			Console.WriteLine();
-			Console.WriteLine("Searching for other {0} x {0} ({1} unique) Magic Squares of squares...", size, len);
-
-			var sw = Stopwatch.StartNew();
-			Parallel.ForEach(
-				Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray().Subsets(len),
-				new ParallelOptions { MaxDegreeOfParallelism = 2 },
-				combination =>
+			using var tester = new Tester(square);
+			using var _ = tester.Subscribe(found =>
 			{
-				using var subsets = combination.Subsets(size).Memoize();
-				emitter.Start(subsets, summaryHeader: $"Candidate: {string.Join(' ', combination)}");
-				var c = Interlocked.Increment(ref count);
-				if (c % 100 == 0)
+				var (familyId, square, perfect) = found;
+				lock (tester)
 				{
-					lock (square)
+					Console.WriteLine();
+					var vector = square.Vector.Select(i => Math.Sqrt(i)).OrderBy(i => i);
+					if (perfect) Console.WriteLine("TRUE MAGIC SQUARE OF SQUARES!");
+					Console.Write("{0}: [{1}]", familyId, string.Join(' ', vector));
+					var rows = square.ToDisplayRowStrings().ToArray();
+					var rowsSq = square.Transform(i => Math.Sqrt(i) + "²").ToDisplayRowStrings().ToArray();
+					for (var i = 0; i < rows.Length; i++)
 					{
 						Console.WriteLine();
-						Console.WriteLine("{0}: {1}+ candidates tested.", sw.Elapsed, c);
+						Console.Write(rowsSq[i]);
+						Console.Write(" | ");
+						Console.Write(rows[i]);
 					}
+					Console.WriteLine(" = {0}", square.Vector.Take(size).Sum());
 				}
 			});
+
+			Console.WriteLine();
+			Console.WriteLine("Searching for {0} x {0} Magic Squares of squares...", size);
+
+			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
+
+			var squaresFact = Factorial(squares.Length);
+			var lenFact = Factorial(len);
+			Console.WriteLine("Possible configurations: {0:n0}", lenFact);
+			var searchSpace = squaresFact / Factorial(squares.Length - len);
+			var possibleSubsets = searchSpace / lenFact;
+			Console.WriteLine("Possible subsets: {0:n0}", possibleSubsets);
+			Console.WriteLine("Search space: {0:n0}", searchSpace);
+
+			var sw = Stopwatch.StartNew();
+			var plausible = tester.TestSumCombinationSubsets(squares);
+			sw.Stop();
+
+			Console.WriteLine();
+			Console.WriteLine("Unique Magic Squares: {0}", tester.TrueCount);
+			Console.WriteLine("Total Families: {0}", tester.FamilyCount);
+			Console.WriteLine("Plausible Reviewed: {0}", tester.PlausibleCount);
+			Console.WriteLine("Elasped Milliseconds: {0}", sw.Elapsed.TotalMilliseconds);
 		}
+
+		static BigInteger Factorial(BigInteger of)
+		{
+			BigInteger result = 1;
+			for (var i = 2; i <= of; ++i) result *= i;
+			return result;
+		}
+
 	}
 }
