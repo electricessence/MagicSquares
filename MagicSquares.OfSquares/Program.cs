@@ -41,15 +41,17 @@ namespace MagicSquares.OfSquares
 					Console.WriteLine();
 					var vector = square.Vector.Select(i => Math.Sqrt(i)).OrderBy(i => i);
 					if (perfect) Console.WriteLine("TRUE MAGIC SQUARE OF SQUARES!");
-					Console.WriteLine("{0}: [{1}]", familyId, string.Join(' ', vector));
+					Console.Write("{0}: [{1}]", familyId, string.Join(' ', vector));
 					var rows = square.ToDisplayRowStrings().ToArray();
 					var rowsSq = square.Transform(i => Math.Sqrt(i) + "²").ToDisplayRowStrings().ToArray();
 					for (var i = 0; i < rows.Length; i++)
 					{
+						Console.WriteLine();
 						Console.Write(rowsSq[i]);
 						Console.Write(" | ");
-						Console.WriteLine(rows[i]);
+						Console.Write(rows[i]);
 					}
+					Console.WriteLine(" = {0}", square.Vector.Take(size).Sum());
 				}
 			});
 
