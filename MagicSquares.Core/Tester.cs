@@ -133,7 +133,7 @@ namespace MagicSquares.Core
 			}
 		}
 
-		bool TryGetUniformRowSum(IReadOnlyList<IReadOnlyList<int>> rows, out int sum)
+		static bool TryGetUniformRowSum(IReadOnlyList<IReadOnlyList<int>> rows, out int sum)
 		{
 #if DEBUG
 			Debug.Assert(rows.Count == Size);

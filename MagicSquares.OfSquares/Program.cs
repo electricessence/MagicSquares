@@ -3,6 +3,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 
 namespace MagicSquares.OfSquares
 {
@@ -38,7 +39,7 @@ namespace MagicSquares.OfSquares
 				lock (tester)
 				{
 					Console.WriteLine();
-					var vector = square.Vector.Select(i => Math.Sqrt(i)).OrderBy(i=>i);
+					var vector = square.Vector.Select(i => Math.Sqrt(i)).OrderBy(i => i);
 					if (perfect) Console.WriteLine("TRUE MAGIC SQUARE OF SQUARES!");
 					Console.WriteLine("{0}: [{1}]", familyId, string.Join(' ', vector));
 					var rows = square.ToDisplayRowStrings().ToArray();
@@ -56,6 +57,15 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine("Searching for {0} x {0} Magic Squares of squares...", size);
 
 			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
+
+			var squaresFact = Factorial(squares.Length);
+			var lenFact = Factorial(len);
+			Console.WriteLine("Possible configurations: {0:n0}", lenFact);
+			var searchSpace = squaresFact / Factorial(squares.Length - len);
+			var possibleSubsets = searchSpace / lenFact;
+			Console.WriteLine("Possible subsets: {0:n0}", possibleSubsets);
+			Console.WriteLine("Search space: {0:n0}", searchSpace);
+
 			var sw = Stopwatch.StartNew();
 			var plausible = tester.TestSumCombinationSubsets(squares);
 			sw.Stop();
@@ -66,5 +76,13 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine("Plausible Reviewed: {0}", tester.PlausibleCount);
 			Console.WriteLine("Elasped Milliseconds: {0}", sw.Elapsed.TotalMilliseconds);
 		}
+
+		static BigInteger Factorial(BigInteger of)
+		{
+			BigInteger result = 1;
+			for (var i = 2; i <= of; ++i) result *= i;
+			return result;
+		}
+
 	}
 }
