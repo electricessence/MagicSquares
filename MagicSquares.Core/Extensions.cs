@@ -259,5 +259,13 @@ namespace MagicSquares
 				pool.Return(result);
 			}
 		}
+
+		public static ImmutableArray<T> ToImmutableArray<T>(this ReadOnlyMemory<T> memory)
+		{
+			var builder = ImmutableArray.CreateBuilder<T>(memory.Length);
+			foreach (var e in memory.Span) builder.Add(e);
+			return builder.MoveToImmutable();
+		}
+ 
 	}
 }

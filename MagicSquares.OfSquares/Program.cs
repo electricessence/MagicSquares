@@ -1,4 +1,5 @@
 ﻿using MagicSquares.Core;
+using Open.Collections;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -60,13 +61,15 @@ namespace MagicSquares.OfSquares
 
 			var squares = Enumerable.Range(1, last - first + 1).Select(v => v * v).ToImmutableArray();
 
-			var squaresFact = Factorial(squares.Length);
-			var lenFact = Factorial(len);
-			Console.WriteLine("Possible configurations: {0:n0}", lenFact);
-			var searchSpace = squaresFact / Factorial(squares.Length - len);
-			var possibleSubsets = searchSpace / lenFact;
-			Console.WriteLine("Possible subsets: {0:n0}", possibleSubsets);
+			var (_, _, rowConfigurations, _) = PossibleSearch(len, size);
+			var (_, _, uniqueRows, _) = PossibleSearch(squares.Length, size);
+			var (_, lenFact, possibleSubsets, searchSpace) = PossibleSearch(squares.Length, len);
+			Console.WriteLine("Possible square configurations: {0:n0}", lenFact);
+			Console.WriteLine("Possible row configurations: {0:n0}", rowConfigurations);
+			Console.WriteLine("Possible unique rows: {0:n0}", uniqueRows);
+			Console.WriteLine("Possible square subsets: {0:n0}", possibleSubsets);
 			Console.WriteLine("Search space: {0:n0}", searchSpace);
+
 
 			var sw = Stopwatch.StartNew();
 			tester.TestSumCombinationSubsets(squares);
@@ -84,6 +87,15 @@ namespace MagicSquares.OfSquares
 			BigInteger result = 1;
 			for (var i = 2; i <= of; ++i) result *= i;
 			return result;
+		}
+
+		static (BigInteger fFull, BigInteger fSub, BigInteger pSub, BigInteger all) PossibleSearch(BigInteger fullSet, BigInteger subSet)
+		{
+			var f = Factorial(fullSet);
+			var s = Factorial(subSet);
+			var searchSpace = f / Factorial(fullSet - subSet);
+			var possibleSubsets = searchSpace / s;
+			return (f, s, possibleSubsets, searchSpace);
 		}
 
 	}

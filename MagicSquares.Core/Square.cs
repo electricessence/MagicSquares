@@ -19,7 +19,7 @@ namespace MagicSquares.Core
 			var values = Enumerable.Range(0, Length).ToImmutableArray();
 			Permutations = values
 				.PermutationsBuffered()
-				.Select(p => p.Take(Length).ToImmutableArray())
+				.Select(p => p.ToImmutableArray())
 				.Select(p => GetPermutation(p))
 				.Memoize();
 		}

@@ -48,8 +48,8 @@ namespace MagicSquares.Core
 			if (distinctSet is null) throw new ArgumentNullException(nameof(distinctSet));
 			if (distinctSet.Count != Square.Length) throw new ArgumentException($"Invalid set size.  Expected: {distinctSet.Count}  Actual: {Square.Length}", nameof(distinctSet));
 
-			using var subsets = distinctSet.Subsets(Size).MemoizeUnsafe();
-			var rowSets = subsets.Subsets(Size);
+			using var subsets = distinctSet.SubsetsProgressive(Size).MemoizeUnsafe();
+			var rowSets = subsets.SubsetsProgressive(Size);
 			Parallel.ForEach(rowSets, rowSet =>
 			{
 				if (!TryGetUniformRowSum(rowSet, out int sum)) return;
@@ -61,7 +61,7 @@ namespace MagicSquares.Core
 		public void TestSetFromDistinctSubsets(IReadOnlyList<int> set)
 		{
 			if (set is null) throw new ArgumentNullException(nameof(set));
-			Parallel.ForEach(set.Subsets(Square.Length), TestDistinctSet);
+			Parallel.ForEach(set.SubsetsProgressive(Square.Length), TestDistinctSet);
 		}
 
 		public void TestSetFromDistinctSubsets(IEnumerable<int> set)
@@ -91,7 +91,7 @@ namespace MagicSquares.Core
 		{
 			if (rowSets is null) throw new ArgumentNullException(nameof(rowSets));
 
-			Parallel.ForEach(rowSets.Subsets(Size), rowSet =>
+			Parallel.ForEach(rowSets.SubsetsProgressive(Size), rowSet =>
 			{
 				Debug.Assert(rowSet.Length == Size);
 				if (!rowSet.SelectMany(e => e.Take(Size)).AllDistinct()) return;
@@ -102,7 +102,7 @@ namespace MagicSquares.Core
 
 		public void TestSumCombinationSubsets(IReadOnlyList<int> set)
 		{
-			using var subsets = set.Subsets(Size).MemoizeUnsafe();
+			using var subsets = set.SubsetsProgressive(Size).MemoizeUnsafe();
 			TestSumCombinationSubsets(subsets);
 		}
 
