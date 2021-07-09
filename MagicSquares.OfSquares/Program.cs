@@ -82,14 +82,14 @@ namespace MagicSquares.OfSquares
 			Console.WriteLine("Elasped Milliseconds: {0}", sw.Elapsed.TotalMilliseconds);
 		}
 
-		static BigInteger Factorial(BigInteger of)
+		static BigInteger Factorial(in BigInteger of)
 		{
 			BigInteger result = 1;
 			for (var i = 2; i <= of; ++i) result *= i;
 			return result;
 		}
 
-		static (BigInteger fFull, BigInteger fSub, BigInteger pSub, BigInteger all) PossibleSearch(BigInteger fullSet, BigInteger subSet)
+		static (BigInteger fFull, BigInteger fSub, BigInteger pSub, BigInteger all) PossibleSearch(in BigInteger fullSet, in BigInteger subSet)
 		{
 			var f = Factorial(fullSet);
 			var s = Factorial(subSet);
