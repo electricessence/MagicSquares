@@ -7,265 +7,260 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MagicSquares
+namespace MagicSquares;
+
+/**
+ What is a magic square?
+ All rows and columns add up to the same number.
+ a + b + c = N
+ d + e + f = N
+ g + h + i = N
+
+ a + d + g = N
+ b + e + h = N
+ c + f + i = N
+*/
+
+public static class Extensions
 {
-	/**
-     * What is a magic square?
-     * All rows and columns add up to the same number.
-     * a + b + c = N
-     * d + e + f = N
-     * g + h + i = N
-     * 
-     * a + d + g = N
-     * b + e + h = N
-     * c + f + i = N 
-     */
-
-	public static class Extensions
+	public static bool AllDistinct<T>(this IEnumerable<T> rows)
+	=> HashSetPool<T>.Shared.Rent(d =>
 	{
-		public static bool AllDistinct<T>(this IEnumerable<T> rows)
-		=> HashSetPool<T>.Shared.Rent(d =>
+		foreach (var e in rows)
 		{
-			foreach (var e in rows)
-			{
-				if (!d.Add(e)) return false;
-			}
+			if (!d.Add(e)) return false;
+		}
+		return true;
+	});
+
+	static bool IsSemiMagicSquareInternal<T>(T square, ref int size, ref int sum, Func<int[], int> validator)
+	{
+		if (square is null) throw new ArgumentNullException(nameof(square));
+
+		var pool = ArrayPool<int>.Shared;
+		var columns = pool.Rent(size);
+		try
+		{
+			var rowCount = validator(columns);
+			if (rowCount != size) return false;
+			for (var i = 0; i < size; i++)
+				if (columns[i] != sum) return false;
 			return true;
-		});
-
-		static bool IsSemiMagicSquareInternal<T>(T square, ref int size, ref int sum, Func<int[], int> validator)
-		{
-			if (square is null) throw new ArgumentNullException(nameof(square));
-
-			var pool = ArrayPool<int>.Shared;
-			var columns = pool.Rent(size);
-			try
-			{
-				var rowCount = validator(columns);
-				if (rowCount != size) return false;
-				for (var i = 0; i < size; i++)
-					if (columns[i] != sum) return false;
-				return true;
-			}
-			finally
-			{
-				pool.Return(columns);
-			}
 		}
-
-
-		public static bool IsSumDiagnals(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
+		finally
 		{
-			Debug.Assert(sum != 0);
-			var right = 0;
-			var left = 0;
-			int rowCount = 0;
-			foreach (var row in square)
-			{
-				if (ignoreOversized ? row.Count < size : row.Count != size) break;
-				var i = 0;
-				foreach (var cell in row)
-				{
-					if (ignoreOversized && i == size)
-						break;
-
-					if (rowCount == i) right += cell;
-					if (size - i - 1 == rowCount) left += cell;
-					++i;
-				}
-				++rowCount;
-
-				if (ignoreOversized && rowCount == size) break;
-			}
-			return left==sum && right==sum;
+			pool.Return(columns);
 		}
+	}
 
-		public static bool IsSemiMagicSquare(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
-		=> IsSemiMagicSquareInternal(square, ref size, ref sum, columns =>
+	public static bool IsSumDiagnals(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
+	{
+		Debug.Assert(sum != 0);
+		var right = 0;
+		var left = 0;
+		int rowCount = 0;
+		foreach (var row in square)
 		{
-			int rowCount = 0;
-			foreach (var row in square)
-			{
-				if (ignoreOversized ? row.Count < size : row.Count != size) break;
-				var rowSum = 0;
-				var i = 0;
-				foreach (var cell in row)
-				{
-					if (ignoreOversized && i == size)
-						break;
-
-					rowSum += cell;
-					if (rowCount == 0)
-						columns[i] = cell;
-					else
-						columns[i] += cell;
-					++i;
-				}
-				if (rowCount == 0 && sum == 0) sum = rowSum;
-				else if (sum != rowSum) break;
-				++rowCount;
-
-				if (ignoreOversized && rowCount == size) break;
-			}
-			return rowCount;
-		});
-
-		public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, int sum, bool ignoreOversized = false)
-		=> IsSemiMagicSquare(square, square?.Count ?? 0, sum, ignoreOversized);
-
-		public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, bool ignoreOversized = false)
-		=> IsSemiMagicSquare(square, square?.Count ?? 0, 0, ignoreOversized);
-
-		public static bool IsSemiMagicSquare(this int[,] square)
-		{
-			var sizeX = square.GetLength(0);
-			var sizeY = square.GetLength(1);
-			return IsSemiMagicSquare(
-				square.Rows().Select(c => c.ToArray()).ToArray(),
-				sizeX, 0, false);
-		}
-
-		public static IEnumerable<IReadOnlyList<int>> MagicSquares(
-			this IEnumerable<IReadOnlyList<int>> source,
-			int size,
-			bool checkDistinct = false)
-			=> checkDistinct
-				? source.AsParallel().Where(e =>
-				{
-					using var rows = e.RowsBuffered(size).MemoizeUnsafe();
-					return e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true) && rows.AllDistinct();
-				})
-				: source.Where(e => e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true));
-
-		public static IEnumerable<IEnumerable<T>> Rows<T>(this T[,] source)
-		{
-			var sizeX = source.GetLength(0);
-			var sizeY = source.GetLength(1);
-			return Enumerable.Range(0, sizeY)
-				.Select(y => Enumerable.Range(0, sizeX).Select(x => source[y, x]));
-		}
-
-		public static IEnumerable<T> Flat<T>(this T[,] source)
-			=> source.Rows().SelectMany(e => e);
-
-		public static IEnumerable<T[]> RowsBuffered<T>(this IEnumerable<T> source, int width)
-		{
-			var pool = ArrayPool<T>.Shared;
-			var buffer = pool.Rent(width);
+			if (ignoreOversized ? row.Count < size : row.Count != size) break;
 			var i = 0;
-			try
+			foreach (var cell in row)
 			{
-				foreach (var e in source)
-				{
-					buffer[i] = e;
-					if (++i == width)
-					{
-						yield return buffer;
-						i = 0;
-					}
-				}
-				if (i != 0) throw new ArgumentException("The source values did not divide evenly into the width.");
+				if (ignoreOversized && i == size)
+					break;
+
+				if (rowCount == i) right += cell;
+				if (size - i - 1 == rowCount) left += cell;
+				++i;
 			}
-			finally
-			{
-				pool.Return(buffer);
-			}
+			++rowCount;
+
+			if (ignoreOversized && rowCount == size) break;
 		}
+		return left == sum && right == sum;
+	}
 
-		public static IEnumerable<T[]> RowConfigurations<T>(this IReadOnlyList<IEnumerable<T>> source)
+	public static bool IsSemiMagicSquare(this IEnumerable<IReadOnlyCollection<int>> square, int size, int sum, bool ignoreOversized = false)
+	=> IsSemiMagicSquareInternal(square, ref size, ref sum, columns =>
+	{
+		int rowCount = 0;
+		foreach (var row in square)
 		{
-			var listPool = ListPool<IEnumerator<T>>.Shared;
-			List<IEnumerator<T>> enumerators = listPool.Take();
-			try
+			if (ignoreOversized ? row.Count < size : row.Count != size) break;
+			var rowSum = 0;
+			var i = 0;
+			foreach (var cell in row)
 			{
-				foreach (var e in source.Select(e => e.GetEnumerator()))
+				if (ignoreOversized && i == size)
+					break;
+
+				rowSum += cell;
+				if (rowCount == 0)
+					columns[i] = cell;
+				else
+					columns[i] += cell;
+				++i;
+			}
+			if (rowCount == 0 && sum == 0) sum = rowSum;
+			else if (sum != rowSum) break;
+			++rowCount;
+
+			if (ignoreOversized && rowCount == size) break;
+		}
+		return rowCount;
+	});
+
+	public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, int sum, bool ignoreOversized = false)
+	=> IsSemiMagicSquare(square, square?.Count ?? 0, sum, ignoreOversized);
+
+	public static bool IsSemiMagicSquare(this IReadOnlyCollection<IReadOnlyCollection<int>> square, bool ignoreOversized = false)
+	=> IsSemiMagicSquare(square, square?.Count ?? 0, 0, ignoreOversized);
+
+	public static bool IsSemiMagicSquare(this int[,] square)
+	{
+		var sizeX = square.GetLength(0);
+		var sizeY = square.GetLength(1);
+		return IsSemiMagicSquare(
+			square.Rows().Select(c => c.ToArray()).ToArray(),
+			sizeX, 0, false);
+	}
+
+	public static IEnumerable<IReadOnlyList<int>> MagicSquares(
+		this IEnumerable<IReadOnlyList<int>> source,
+		int size,
+		bool checkDistinct = false)
+		=> checkDistinct
+			? source.AsParallel().Where(e =>
+			{
+				using var rows = e.RowsBuffered(size).MemoizeUnsafe();
+				return e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true) && rows.AllDistinct();
+			})
+			: source.Where(e => e.RowsBuffered(size).IsSemiMagicSquare(size, 0, true));
+
+	public static IEnumerable<IEnumerable<T>> Rows<T>(this T[,] source)
+	{
+		var sizeX = source.GetLength(0);
+		var sizeY = source.GetLength(1);
+		return Enumerable.Range(0, sizeY)
+			.Select(y => Enumerable.Range(0, sizeX).Select(x => source[y, x]));
+	}
+
+	public static IEnumerable<T> Flat<T>(this T[,] source)
+		=> source.Rows().SelectMany(e => e);
+
+	public static IEnumerable<T[]> RowsBuffered<T>(this IEnumerable<T> source, int width)
+	{
+		var pool = ArrayPool<T>.Shared;
+		var buffer = pool.Rent(width);
+		var i = 0;
+		try
+		{
+			foreach (var e in source)
+			{
+				buffer[i] = e;
+				if (++i == width)
 				{
-					if (!e.MoveNext())
+					yield return buffer;
+					i = 0;
+				}
+			}
+			if (i != 0) throw new ArgumentException("The source values did not divide evenly into the width.");
+		}
+		finally
+		{
+			pool.Return(buffer);
+		}
+	}
+
+	public static IEnumerable<T[]> RowConfigurations<T>(this IReadOnlyList<IEnumerable<T>> source)
+	{
+		var listPool = ListPool<IEnumerator<T>>.Shared;
+		List<IEnumerator<T>> enumerators = listPool.Take();
+		try
+		{
+			foreach (var e in source.Select(e => e.GetEnumerator()))
+			{
+				if (!e.MoveNext())
+				{
+					yield break;
+				}
+				enumerators.Add(e);
+			}
+
+			var count = enumerators.Count;
+			Debug.Assert(source.Count == count);
+
+			bool GetNext() => ListPool<int>.Shared.Rent(reset =>
+			{
+				for (var i = 0; i < count; i++)
+				{
+					var e = enumerators[i];
+					if (e.MoveNext())
 					{
-						yield break;
+						foreach (var r in reset)
+						{
+							enumerators[r] = e = source[r].GetEnumerator();
+							e.MoveNext();
+						}
+						return true;
 					}
-					enumerators.Add(e);
+					e.Dispose();
+					if (i == count - 1) break;
+					reset.Add(i);
 				}
 
-				var count = enumerators.Count;
-				Debug.Assert(source.Count == count);
+				return false;
+			});
 
-				bool GetNext() => ListPool<int>.Shared.Rent(reset =>
+			var arrayPool = ArrayPool<T>.Shared;
+			var buffer = arrayPool.Rent(count);
+			try
+			{
+				do
 				{
 					for (var i = 0; i < count; i++)
 					{
-						var e = enumerators[i];
-						if (e.MoveNext())
-						{
-							foreach (var r in reset)
-							{
-								enumerators[r] = e = source[r].GetEnumerator();
-								e.MoveNext();
-							}
-							return true;
-						}
-						e.Dispose();
-						if (i == count - 1) break;
-						reset.Add(i);
+						buffer[i] = enumerators[i].Current ?? throw new NullReferenceException();
 					}
-
-					return false;
-				});
-
-
-				var arrayPool = ArrayPool<T>.Shared;
-				var buffer = arrayPool.Rent(count);
-				try
-				{
-					do
-					{
-						for (var i = 0; i < count; i++)
-						{
-							buffer[i] = enumerators[i].Current ?? throw new NullReferenceException();
-						}
-						yield return buffer;
-					}
-					while (GetNext());
+					yield return buffer;
 				}
-				finally
-				{
-					arrayPool.Return(buffer);
-				}
-
+				while (GetNext());
 			}
 			finally
 			{
-				listPool.Give(enumerators);
+				arrayPool.Return(buffer);
 			}
 		}
-
-		public static IEnumerable<T[]> RowConfigurations<T>(this IReadOnlyList<IReadOnlyList<T>> rowPerms, ImmutableArray<ImmutableArray<int>> combinationGrid)
+		finally
 		{
-			var pool = ArrayPool<T>.Shared;
-			var result = pool.Rent(rowPerms.Count);
-			try
-			{
-				foreach (var combination in combinationGrid)
-				{
-					for (var r = 0; r < rowPerms.Count; r++)
-					{
-						result[r] = rowPerms[r][combination[r]];
-					}
-					yield return result;
-				}
-			}
-			finally
-			{
-				pool.Return(result);
-			}
+			listPool.Give(enumerators);
 		}
-
-		public static ImmutableArray<T> ToImmutableArray<T>(this ReadOnlyMemory<T> memory)
-		{
-			var builder = ImmutableArray.CreateBuilder<T>(memory.Length);
-			foreach (var e in memory.Span) builder.Add(e);
-			return builder.MoveToImmutable();
-		}
- 
 	}
+
+	public static IEnumerable<T[]> RowConfigurations<T>(this IReadOnlyList<IReadOnlyList<T>> rowPerms, ImmutableArray<ImmutableArray<int>> combinationGrid)
+	{
+		var pool = ArrayPool<T>.Shared;
+		var result = pool.Rent(rowPerms.Count);
+		try
+		{
+			foreach (var combination in combinationGrid)
+			{
+				for (var r = 0; r < rowPerms.Count; r++)
+				{
+					result[r] = rowPerms[r][combination[r]];
+				}
+				yield return result;
+			}
+		}
+		finally
+		{
+			pool.Return(result);
+		}
+	}
+
+	//public static ImmutableArray<T> ToImmutableArray<T>(this ReadOnlyMemory<T> memory)
+	//{
+	//	var builder = ImmutableArray.CreateBuilder<T>(memory.Length);
+	//	builder.AddRange(memory.Span);
+	//	return builder.MoveToImmutable();
+	//}
 }

@@ -1,9 +1,8 @@
-﻿namespace MagicSquares.Core
+﻿namespace MagicSquares.Core;
+
+public enum MagicSquareQuality : byte
 {
-	public enum MagicSquareQuality : byte
-	{
-		Failed,
-		Semi,
-		True
-	}
+	Failed,
+	Semi,
+	True
 }

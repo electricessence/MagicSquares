@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
-    <LangVersion>default</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Open.Threading" Version="1.6.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Open.Threading" Version="1.6.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MagicSquares\MagicSquares.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\MagicSquares\MagicSquares.csproj" />
+	</ItemGroup>
 
 </Project>

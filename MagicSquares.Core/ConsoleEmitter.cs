@@ -1,40 +1,36 @@
 ﻿using Open.Disposable;
 using System;
-using System.Collections.Generic;
 
-namespace MagicSquares.Core
+namespace MagicSquares.Core;
+
+public class ConsoleEmitter : DisposableBase
 {
-	public class ConsoleEmitter : DisposableBase
+	public ConsoleEmitter(Tester tester, Func<int, string>? transform = null)
 	{
-		public ConsoleEmitter(Tester tester, Func<int, string>? transform = null)
-		{
-			if (tester is null) throw new ArgumentNullException(nameof(tester));
-			_magicSquareSubscription = tester.Subscribe(OnMagicSquareFound);
-			_tester = tester;
-			_transform = transform;
-		}
+		ArgumentNullException.ThrowIfNull(tester);
+		_magicSquareSubscription = tester.Subscribe(OnMagicSquareFound);
+		_tester = tester;
+		_transform = transform;
+	}
 
-		readonly IDisposable _magicSquareSubscription;
-		private readonly Tester _tester;
-		private readonly Func<int, string>? _transform;
+	readonly IDisposable _magicSquareSubscription;
+	private readonly Tester _tester;
+	private readonly Func<int, string>? _transform;
 
-		protected override void OnDispose()
-		{
-			_magicSquareSubscription.Dispose();
-		}
+	protected override void OnDispose()
+		=> _magicSquareSubscription.Dispose();
 
-		void OnMagicSquareFound((int id, SquareMatrix<int> square, bool perfect) found)
+	void OnMagicSquareFound((int id, SquareMatrix<int> square, bool perfect) found)
+	{
+		var (f, magicSquare, perfect) = found;
+		var comment = perfect ? "(perfect)" : string.Empty; lock (_tester)
 		{
-			var (f, magicSquare, perfect) = found;
-			var comment = perfect ? "(perfect)" : string.Empty; lock (_tester)
-			{
-				Console.WriteLine();
-				Console.WriteLine("{0}: {1}", f, comment);
-				if (_transform == null)
-					magicSquare.OutputToConsole();
-				else
-					magicSquare.Transform(_transform).OutputToConsole();
-			}
+			Console.WriteLine();
+			Console.WriteLine("{0}: {1}", f, comment);
+			if (_transform == null)
+				magicSquare.OutputToConsole();
+			else
+				magicSquare.Transform(_transform).OutputToConsole();
 		}
 	}
 }
